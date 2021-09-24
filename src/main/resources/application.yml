@@ -1,0 +1,18 @@
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        # TODO Disable most endpoints in non-dev environments.
+        include: '*'
+
+spring:
+  main:
+    banner-mode: off
+
+server:
+  # Use same port as govsso-session/docker-compose.yml.
+  port: 11080
