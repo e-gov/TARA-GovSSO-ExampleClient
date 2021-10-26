@@ -14,11 +14,28 @@ spring:
     banner-mode: off
   application:
     name: democlient
-
+  security:
+    oauth2:
+      client:
+        registration:
+          govsso:
+            client-id: client-a
+            client-secret: secreta
+            authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+            scope: openid
+        provider:
+          govsso:
+            issuer-uri: http://localhost:13444/
 server:
   # Use same port as govsso-session/docker-compose.yml.
-  port: 11080
+  port: 11443
+  ssl:
+    enabled: true
+    key-store-password: changeit
+    key-store: classpath:tls-keystore.jks
+    key-store-type: JKS
 
-sso:
-  application:
-    logo: client-a.png
+govsso:
+  public-url: https://localhost:11443
+  logo: client-a.png
