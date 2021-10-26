@@ -12,7 +12,13 @@ management:
 spring:
   main:
     banner-mode: off
+  application:
+    name: democlient
 
 server:
   # Use same port as govsso-session/docker-compose.yml.
   port: 11080
+
+sso:
+  application:
+    logo: client-a.png
