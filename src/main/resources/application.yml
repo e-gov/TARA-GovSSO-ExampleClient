@@ -13,7 +13,7 @@ spring:
   main:
     banner-mode: off
   application:
-    name: democlient
+    name: Client A
   security:
     oauth2:
       client:
@@ -26,7 +26,7 @@ spring:
             scope: openid
         provider:
           govsso:
-            issuer-uri: http://localhost:13444/
+            issuer-uri: http://oidc.localhost:13444/
 server:
   # Use same port as govsso-session/docker-compose.yml.
   port: 11443
