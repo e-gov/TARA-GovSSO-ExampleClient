@@ -37,11 +37,7 @@ browsers already have built-in support for resolving `*.localhost` subdomains.
                  mvn spring-boot:build-image
       ```
       Git Bash users on Windows should add `MSYS_NO_PATHCONV=1` in front of the command.
-2. Run
-   ```shell
-   docker run --rm -p 11080:11080 govsso-client:latest
-   ```
-3. Follow GOVSSO-Session/README.md to run dependent services
+2. Follow GOVSSO-Session/README.md to run GOVSSO-Client and dependent services inside Docker Compose
 
 ## Endpoints
 
