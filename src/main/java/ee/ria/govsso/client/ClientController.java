@@ -22,13 +22,12 @@ public class ClientController {
     public static final String LOGIN_VIEW_MAPPING = "/";
     public static final String DASHBOARD_MAPPING = "/dashboard";
 
+    @Autowired
+    private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
     @Value("${spring.application.name}")
     private String applicationName;
     @Value("${govsso.logo}")
     private String applicationLogo;
-
-    @Autowired
-    OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
     @GetMapping(value = LOGIN_VIEW_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
     public ModelAndView clientLoginView(@AuthenticationPrincipal OidcUser oidcUser) {

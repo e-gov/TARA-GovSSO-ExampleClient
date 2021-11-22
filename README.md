@@ -10,9 +10,9 @@ TODO What this application does.
 
 ## Building and Running Locally
 
-1. Add `127.0.0.1 oidc.localhost` line to `hosts` file. This is needed only for requests originating from
-govsso-client when it's running locally (not in Docker Compose). It's not needed for web browsers as popular
-browsers already have built-in support for resolving `*.localhost` subdomains.
+1. Add `127.0.0.1 oidc.localhost` line to `hosts` file. This is needed only for requests originating from govsso-client
+   when it's running locally (not in Docker Compose). It's not needed for web browsers as popular browsers already have
+   built-in support for resolving `*.localhost` subdomains.
 2. Run
    ```shell 
    ./mvnw spring-boot:run

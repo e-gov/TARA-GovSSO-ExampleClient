@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="et">
+<html lang="et" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <link rel="icon" type="image/png" th:href="'/assets/' + ${application_logo}">
+    <link rel="icon" th:href="'/assets/' + ${application_logo}" type="image/png">
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" rel="stylesheet">
     <title th:text="${application_name}"></title>
 </head>
 <body>
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
     <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="dashboard" style="margin: 10px;">
-        <img th:src="'/assets/' + ${application_logo}" width="30" height="30"
-             class="d-inline-block align-top"/>&nbsp;<span
+        <img class="d-inline-block align-top" height="30" th:src="'/assets/' + ${application_logo}"
+             width="30"/>&nbsp;<span
             th:text="${application_name}"/>
     </a>
     <ul class=" navbar-nav px-3">
         <li class="nav-item text-nowrap">
-            <a class="btn btn-primary" th:href="@{/oauth2/authorization/govsso}" role="button">Logi
+            <a class="btn btn-primary" role="button" th:href="@{/oauth2/authorization/govsso}">Logi
                 sisse &raquo;</a>
         </li>
     </ul>
@@ -29,16 +29,16 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
         <div class="container">
-            <div th:if="${error != null && error.equals('authentication_failure')}" class="alert alert-danger"
-                 role="alert">
+            <div class="alert alert-danger" role="alert"
+                 th:if="${error != null && error.equals('authentication_failure')}">
                 Viga seansi uuendamisel või autentimisel!
             </div>
-            <div th:if="${error != null && error.equals('invalid_session')}" class="alert alert-danger"
-                 role="alert">
+            <div class="alert alert-danger" role="alert"
+                 th:if="${error != null && error.equals('invalid_session')}">
                 Seanssi ei leitud!
             </div>
-            <div th:if="${error != null && error.equals('expired_session')}" class="alert alert-danger"
-                 role="alert">
+            <div class="alert alert-danger" role="alert"
+                 th:if="${error != null && error.equals('expired_session')}">
                 Seanss on lõpetatud!
             </div>
             <h1 class="display-3" th:text="${application_name} + ' e-teenus'">Tere tulemast!</h1>
@@ -49,19 +49,19 @@
         </div>
     </div>
 </main>
-<footer style="z-index: -1" class="my-5 pt-5 text-muted text-center text-small fixed-bottom">
+<footer class="my-5 pt-5 text-muted text-center text-small fixed-bottom" style="z-index: -1">
     <p class="mb-1"><img src="/assets/eu_regional_development_fund_horizontal.jpg" width="100px"></p>
 </footer>
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+<script crossorigin="anonymous"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
-        crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script crossorigin="anonymous"
         integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-        crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script crossorigin="anonymous"
         integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
-        crossorigin="anonymous"></script>
+        src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 </body>
 </html>
