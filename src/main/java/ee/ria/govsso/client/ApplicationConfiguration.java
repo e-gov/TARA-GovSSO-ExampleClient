@@ -10,19 +10,27 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
+import org.thymeleaf.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -41,7 +49,9 @@ public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.sessionManagement().maximumSessions(1).sessionRegistry(sessionRegistry());
+        SessionRegistry sessionRegistry = sessionRegistry();
+        http.sessionManagement().maximumSessions(1).sessionRegistry(sessionRegistry);
+        CustomAuthorizationRequestResolver authorizationRequestResolver = new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry);
 
         http
                 .authorizeRequests()
@@ -56,7 +66,7 @@ public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
                 .oauth2Login()
                 .defaultSuccessUrl("/dashboard")
                 .failureHandler(getAuthFailureHandler())
-                .authorizationEndpoint().authorizationRequestResolver(new CustomAuthorizationRequestResolver(this.clientRegistrationRepository));
+                .authorizationEndpoint().authorizationRequestResolver(authorizationRequestResolver);
     }
 
     @Bean
@@ -78,40 +88,4 @@ public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
             }
         };
     }
-
-    public static class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
-        private final OAuth2AuthorizationRequestResolver defaultAuthorizationRequestResolver;
-
-        public CustomAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
-            this.defaultAuthorizationRequestResolver =
-                    new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
-        }
-
-        @Override
-        public OAuth2AuthorizationRequest resolve(HttpServletRequest httpServletRequest) {
-
-            OAuth2AuthorizationRequest authorizationRequest = this.defaultAuthorizationRequestResolver.resolve(httpServletRequest);
-            return authorizationRequest != null ? customAuthorizationRequest(authorizationRequest) : null;
-        }
-
-        @Override
-        public OAuth2AuthorizationRequest resolve(
-                HttpServletRequest httpServletRequest, String clientRegistrationId) {
-
-            OAuth2AuthorizationRequest authorizationRequest =
-                    this.defaultAuthorizationRequestResolver.resolve(httpServletRequest, clientRegistrationId);
-            return authorizationRequest != null ? customAuthorizationRequest(authorizationRequest) : null;
-        }
-
-        private OAuth2AuthorizationRequest customAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest) {
-
-            Map<String, Object> additionalParameters = new LinkedHashMap<>(authorizationRequest.getAdditionalParameters());
-
-            return OAuth2AuthorizationRequest.from(authorizationRequest)
-                    .additionalParameters(additionalParameters)
-                    .build();
-        }
-
-    }
-
 }
