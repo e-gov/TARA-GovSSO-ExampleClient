@@ -14,10 +14,12 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,7 +41,6 @@ public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         SessionRegistry sessionRegistry = sessionRegistry();
-        http.sessionManagement().maximumSessions(1).sessionRegistry(sessionRegistry);
         CustomAuthorizationRequestResolver authorizationRequestResolver = new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry);
 
         http
@@ -53,9 +54,21 @@ public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
                 .loginPage("/")
                 .and()
                 .oauth2Login()
+                .authorizationEndpoint()
+                .authorizationRequestResolver(authorizationRequestResolver)
+                .and()
                 .defaultSuccessUrl("/dashboard")
                 .failureHandler(getAuthFailureHandler())
-                .authorizationEndpoint().authorizationRequestResolver(authorizationRequestResolver);
+                .and()
+                .logout()
+                .logoutSuccessHandler(oidcLogoutSuccessHandler())
+                .logoutUrl("/oauth/logout")
+                .deleteCookies().invalidateHttpSession(true)
+                .and()
+                .sessionManagement()
+                .maximumSessions(1)
+                .sessionRegistry(sessionRegistry)
+                .expiredUrl("/?error=expired_session");
     }
 
     @Bean
@@ -76,5 +89,13 @@ public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
                 redirectStrategy.sendRedirect(request, response, "/?error=authentication_failure");
             }
         };
+    }
+
+    private LogoutSuccessHandler oidcLogoutSuccessHandler() {
+
+        OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler =
+                new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
+        oidcLogoutSuccessHandler.setPostLogoutRedirectUri(publicUrl);
+        return oidcLogoutSuccessHandler;
     }
 }

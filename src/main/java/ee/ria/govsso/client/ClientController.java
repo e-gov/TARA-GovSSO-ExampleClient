@@ -1,18 +1,35 @@
 package ee.ria.govsso.client;
 
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.thymeleaf.util.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -21,9 +38,12 @@ public class ClientController {
 
     public static final String LOGIN_VIEW_MAPPING = "/";
     public static final String DASHBOARD_MAPPING = "/dashboard";
+    public static final String LOGOUT_MAPPING = "/session/logout";
 
     @Autowired
     private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
+    @Autowired
+    SessionRegistry sessionRegistry;
     @Value("${spring.application.name}")
     private String applicationName;
     @Value("${govsso.logo}")
@@ -56,11 +76,51 @@ public class ClientController {
         return model;
     }
 
-    private void addIdTokenDataToModel(@AuthenticationPrincipal OidcUser oidcUser, ModelAndView model) throws JsonProcessingException {
-        model.addObject("given_name", oidcUser.getClaimAsMap("profile_attributes") != null ? oidcUser.getClaimAsMap("profile_attributes").get("given_name") : null);
-        model.addObject("family_name", oidcUser.getClaimAsMap("profile_attributes") != null ? oidcUser.getClaimAsMap("profile_attributes").get("family_name") : null);
-        model.addObject("date_of_birth", oidcUser.getClaimAsMap("profile_attributes") != null ? oidcUser.getClaimAsMap("profile_attributes").get("date_of_birth") : null);
+    @CrossOrigin("*")
+    @PostMapping(value = LOGOUT_MAPPING, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity backChannelLogout(@RequestParam(name = "logout_token", required = true) String logoutToken, HttpServletRequest request) {
+        HttpHeaders responseHeaders = getHttpHeaders();
+        DecodedJWT decodedLogoutToken = JWT.decode(logoutToken); //TODO remove com.auth0 dependency and use nimbus jwt instead
+        log.info("Received back-channel logout request for sid='{}'",
+                decodedLogoutToken.getClaim("sid"));
+        expireOidcSessions(decodedLogoutToken.getClaim("sid").asString());
+        return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
+    }
 
+    private HttpHeaders getHttpHeaders() {
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("Cache-Control", "no-cache, no-store");
+        responseHeaders.add("Pragma", "no-cache");
+        return responseHeaders;
+    }
+
+    private void expireOidcSessions(String sid) {
+        List<DefaultOidcUser> usersBySid =
+                sessionRegistry.getAllPrincipals()
+                        .stream()
+                        .filter(principal -> principal instanceof DefaultOidcUser && (StringUtils.equals(((DefaultOidcUser) principal).getClaim("sid"), sid)))
+                        .map(DefaultOidcUser.class::cast)
+                        .collect(Collectors.toList());
+        expireSessions(usersBySid);
+    }
+
+    private void expireSessions(List<DefaultOidcUser> users) {
+        if (CollectionUtils.isEmpty(users)) {
+            return;
+        }
+        for (DefaultOidcUser user : users) {
+            for (SessionInformation si : sessionRegistry.getAllSessions(user, false)) {
+                log.info("Terminating client application session sid='{}', sub='{}'", si.getSessionId(), user.getSubject());
+                si.expireNow();
+            }
+        }
+    }
+
+    private void addIdTokenDataToModel(@AuthenticationPrincipal OidcUser oidcUser, ModelAndView model) {
+
+        model.addObject("given_name", oidcUser.getClaimAsString("given_name"));
+        model.addObject("family_name", oidcUser.getClaimAsString("family_name"));
+        model.addObject("date_of_birth", oidcUser.getClaimAsString("date_of_birth"));
         model.addObject("jti", oidcUser.getClaimAsString("jti"));
         model.addObject("iss", oidcUser.getIssuer());
         model.addObject("aud", oidcUser.getAudience());
