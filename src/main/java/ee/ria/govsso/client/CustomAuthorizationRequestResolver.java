@@ -52,8 +52,6 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
             checkSessionExpiration(httpServletRequest.getSession());
             additionalParameters.put("id_token_hint", getPreviousIdToken());
             additionalParameters.put("prompt", "none");
-        } else {
-            additionalParameters.put("prompt", "consent");
         }
 
         return OAuth2AuthorizationRequest.from(authorizationRequest)
