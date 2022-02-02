@@ -13,6 +13,8 @@
     <groupId>ee.ria.govsso</groupId>
     <artifactId>govsso-client</artifactId>
     <version>0.1.0</version>
+    <!-- Support servlet container as described in https://docs.spring.io/spring-boot/docs/2.6.3/reference/htmlsingle/#howto.traditional-deployment.war -->
+    <packaging>war</packaging>
 
     <name>GOVSSO Example Client</name>
     <licenses>
@@ -45,6 +47,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
+        <!-- Support servlet container as described in https://docs.spring.io/spring-boot/docs/2.6.3/reference/htmlsingle/#howto.traditional-deployment.war -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
@@ -56,6 +64,8 @@
     </dependencies>
 
     <build>
+        <!-- Produce artifact name without version, so it would be easier to reference in pipeline. -->
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
