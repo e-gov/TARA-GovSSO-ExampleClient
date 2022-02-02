@@ -26,16 +26,18 @@ spring:
             scope: openid
         provider:
           govsso:
-            issuer-uri: http://gateway.localhost:13080/
+            issuer-uri: https://gateway.localhost:13443/
 server:
   # Use same port as govsso-session/docker-compose.yml.
   port: 11443
   ssl:
     enabled: true
     key-store-password: changeit
-    key-store: classpath:tls-keystore.jks
-    key-store-type: JKS
+    key-store: src/main/resources/clienta-local-keystore.p12
+    key-store-type: PKCS12
+    trust-store: src/main/resources/clienta-local-truststore.p12
+    trust-store-password: changeit
 
 govsso:
-  public-url: https://localhost:11443
+  public-url: https://clienta.localhost:11443
   logo: client-a.png
