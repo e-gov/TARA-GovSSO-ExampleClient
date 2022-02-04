@@ -120,7 +120,7 @@ public class ClientController {
 
         model.addObject("given_name", oidcUser.getClaimAsString("given_name"));
         model.addObject("family_name", oidcUser.getClaimAsString("family_name"));
-        model.addObject("date_of_birth", oidcUser.getClaimAsString("date_of_birth"));
+        model.addObject("birthdate", oidcUser.getClaimAsString("birthdate"));
         model.addObject("jti", oidcUser.getClaimAsString("jti"));
         model.addObject("iss", oidcUser.getIssuer());
         model.addObject("aud", oidcUser.getAudience());
