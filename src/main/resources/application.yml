@@ -33,9 +33,9 @@ server:
   ssl:
     enabled: true
     key-store-password: changeit
-    key-store: src/main/resources/clienta-local-keystore.p12
+    key-store: src/main/resources/clienta.localhost.keystore.p12
     key-store-type: PKCS12
-    trust-store: src/main/resources/clienta-local-truststore.p12
+    trust-store: src/main/resources/clienta.localhost.truststore.p12
     trust-store-password: changeit
 
 govsso:
