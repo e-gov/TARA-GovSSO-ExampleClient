@@ -20,10 +20,17 @@ import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.header.HeaderWriter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS;
+import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
+import static org.springframework.http.HttpHeaders.ORIGIN;
 
 @DependsOn("SSLConfig")
 @Slf4j
@@ -31,6 +38,9 @@ import java.io.IOException;
 @ConfigurationProperties(prefix = "govsso")
 @EnableWebSecurity
 public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
+
+    private static final List<String> SESSION_UPDATE_CORS_ALLOWED_ENDPOINTS =
+            Arrays.asList("/login/oauth2/code/govsso", "/dashboard");
 
     @Getter
     @Setter
@@ -48,7 +58,8 @@ public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/", "/assets/*").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .cors()
+                .headers()
+                .addHeaderWriter(corsHeaderWriter())
                 .and()
                 .formLogin()
                 .loginPage("/")
@@ -69,6 +80,23 @@ public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
                 .maximumSessions(1)
                 .sessionRegistry(sessionRegistry)
                 .expiredUrl("/?error=expired_session");
+    }
+
+    public HeaderWriter corsHeaderWriter() {
+        return (request, response) -> {
+            // CORS is needed for automatic, in the background session extension.
+            // But only for the endpoint that GOVSSO redirects to after successful re-authentication process.
+            // For that redirect Origin header is set to "null", since request comes from a "privacy-sensitive" context.
+            // So setting CORS headers for given case only.
+            // '/dashboard' must be included since the OAuth2 endpoint in turn redirects to dashboard.
+            if (SESSION_UPDATE_CORS_ALLOWED_ENDPOINTS.contains(request.getRequestURI())) {
+                String originHeader = request.getHeader(ORIGIN);
+                if (originHeader != null && originHeader.equals("null")) {
+                    response.addHeader(ACCESS_CONTROL_ALLOW_ORIGIN, "null");
+                    response.addHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+                }
+            }
+        };
     }
 
     @Bean
