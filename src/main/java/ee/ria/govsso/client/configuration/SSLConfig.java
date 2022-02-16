@@ -1,4 +1,4 @@
-package ee.ria.govsso.client;
+package ee.ria.govsso.client.configuration;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

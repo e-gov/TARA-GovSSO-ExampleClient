@@ -1,4 +1,4 @@
-package ee.ria.govsso.client;
+package ee.ria.govsso.client.configuration;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -37,7 +37,7 @@ import static org.springframework.http.HttpHeaders.ORIGIN;
 @Configuration
 @ConfigurationProperties(prefix = "govsso")
 @EnableWebSecurity
-public class ApplicationConfiguration extends WebSecurityConfigurerAdapter {
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private static final List<String> SESSION_UPDATE_CORS_ALLOWED_ENDPOINTS =
             Arrays.asList("/login/oauth2/code/govsso", "/dashboard");

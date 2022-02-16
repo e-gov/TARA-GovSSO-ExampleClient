@@ -1,9 +1,8 @@
-package ee.ria.govsso.client;
+package ee.ria.govsso.client.controller;
 
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
@@ -41,8 +39,6 @@ public class ClientController {
     public static final String LOGOUT_MAPPING = "/session/logout";
 
     @Autowired
-    private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
-    @Autowired
     SessionRegistry sessionRegistry;
     @Value("${spring.application.name}")
     private String applicationName;
@@ -65,7 +61,7 @@ public class ClientController {
     }
 
     @GetMapping(value = DASHBOARD_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
-    public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser) throws JsonProcessingException {
+    public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser) {
         ModelAndView model = new ModelAndView("dashboard");
         model.addObject("application_name", applicationName);
         model.addObject("application_logo", applicationLogo);
