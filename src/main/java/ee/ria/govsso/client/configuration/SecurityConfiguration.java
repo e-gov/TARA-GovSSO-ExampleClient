@@ -18,6 +18,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -69,9 +70,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .headers()
                 .addHeaderWriter(corsHeaderWriter())
-                .and()
-                .formLogin()
-                .loginPage("/")
                 .and()
                 .oauth2Login()
                 .authorizationEndpoint()
@@ -155,7 +153,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
                     throws IOException {
                 log.error("Authentication failed", exception);
-                redirectStrategy.sendRedirect(request, response, "/?error=authentication_failure");
+                if (exception instanceof OAuth2AuthenticationException ex) {
+                    redirectStrategy.sendRedirect(request, response, "/?error=" + ex.getError().getErrorCode());
+                } else {
+                    redirectStrategy.sendRedirect(request, response, "/?error=authentication_failure");
+                }
             }
         };
     }

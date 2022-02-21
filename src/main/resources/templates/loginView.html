@@ -31,17 +31,19 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
         <div class="container">
-            <div class="alert alert-danger" role="alert"
-                 th:if="${error != null && error.equals('authentication_failure')}">
-                Viga seansi uuendamisel või autentimisel!
-            </div>
-            <div class="alert alert-danger" role="alert"
-                 th:if="${error != null && error.equals('invalid_session')}">
-                Seanssi ei leitud!
-            </div>
-            <div class="alert alert-danger" role="alert"
-                 th:if="${error != null && error.equals('expired_session')}">
-                Seanss on lõpetatud!
+            <div th:if="${param.error}" th:switch="${param.error[0]}">
+                <div class="alert alert-danger" role="alert" th:case="invalid_session">
+                    Seanssi ei leitud!
+                </div>
+                <div class="alert alert-danger" role="alert" th:case="expired_session">
+                    Seanss on lõpetatud!
+                </div>
+                <div class="alert alert-info" role="alert" th:case="user_cancel">
+                    Kasutaja katkestas autentimise!
+                </div>
+                <div class="alert alert-danger" role="alert" th:case="*">
+                    Viga seansi uuendamisel või autentimisel!
+                </div>
             </div>
             <h1 class="display-3" th:text="${application_name} + ' e-teenus'">Tere tulemast!</h1>
             <p>Tere tulemast kasutama meie e-teenust! </p>
