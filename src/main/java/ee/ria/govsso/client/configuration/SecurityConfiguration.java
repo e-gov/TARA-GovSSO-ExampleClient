@@ -59,7 +59,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         http
                 .authorizeRequests()
-                .antMatchers("/", "/assets/*").permitAll()
+                .antMatchers("/", "/assets/*","/scripts/*").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 /*

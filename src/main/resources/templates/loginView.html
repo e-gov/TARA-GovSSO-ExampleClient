@@ -18,12 +18,14 @@
              width="30"/>&nbsp;<span
             th:text="${application_name}"/>
     </a>
-    <ul class=" navbar-nav px-3">
-        <li class="nav-item text-nowrap">
-            <a class="btn btn-primary" role="button" th:href="@{/oauth2/authorization/govsso}">Logi
-                sisse &raquo;</a>
-        </li>
-    </ul>
+    <div>
+        <ul class=" navbar-nav px-3">
+            <li class="nav-item text-nowrap">
+                <a id="loginUrl" class="btn btn-primary" role="button" href="/oauth2/authorization/govsso">Logi
+                    sisse &raquo;</a>
+            </li>
+        </ul>
+    </div>
 </nav>
 <main role="main">
     <!-- Main jumbotron for a primary marketing message or call to action -->
@@ -46,6 +48,19 @@
             <p>Oma töölaua nägemiseks palume Sul oma isik eletrooniliselt
                 tuvastada. Meie e-teenus kasutab turvaliseks autentimiseks riigi autentimisteenuse ühekordse
                 sisselogimise lahendust.</p>
+            <br>
+            <p>locale: <select id="localeOptions">
+                <option value="none">(none)</option>
+                <option value="et">et</option>
+                <option value="en">en</option>
+                <option value="ru">ru</option>
+            </select></p>
+            <p>acr: <select id="acrOptions">
+                <option value="none">(none)</option>
+                <option value="low">low</option>
+                <option value="substantial">substantial</option>
+                <option value="high">high</option>
+            </select></p>
         </div>
     </div>
 </main>
@@ -63,5 +78,7 @@
 <script crossorigin="anonymous"
         integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
         src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<!-- Required scripts -->
+<script src="/scripts/login.js" type="text/javascript"></script>
 </body>
 </html>

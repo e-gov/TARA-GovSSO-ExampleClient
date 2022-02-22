@@ -49,6 +49,16 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
     private OAuth2AuthorizationRequest customAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest httpServletRequest) {
         Map<String, Object> additionalParameters = new LinkedHashMap<>(authorizationRequest.getAdditionalParameters());
 
+        String locale = httpServletRequest.getParameter("locale");
+        String acr = httpServletRequest.getParameter("acr");
+
+        if (locale != null) {
+            additionalParameters.put("ui_locales", locale);
+        }
+        if (acr != null) {
+            additionalParameters.put("acr_values", acr);
+        }
+
         if (isUpdateRequest(httpServletRequest)) {
             checkSessionExpiration(httpServletRequest.getSession());
             additionalParameters.put("id_token_hint", getPreviousIdToken());
