@@ -1,9 +1,12 @@
 package ee.ria.govsso.client.configuration;
 
+import ee.ria.govsso.client.ouath2.CustomAuthorizationRequestResolver;
+import ee.ria.govsso.client.ouath2.CustomCsrfAuthenticationStrategy;
+import ee.ria.govsso.client.ouath2.CustomRegisterSessionAuthenticationStrategy;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +23,8 @@ import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.header.HeaderWriter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -37,6 +42,7 @@ import static org.springframework.http.HttpHeaders.ORIGIN;
 @Configuration
 @ConfigurationProperties(prefix = "govsso")
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private static final List<String> SESSION_UPDATE_CORS_ALLOWED_ENDPOINTS =
@@ -45,18 +51,23 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Getter
     @Setter
     String publicUrl;
-    @Autowired
-    ClientRegistrationRepository clientRegistrationRepository;
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         SessionRegistry sessionRegistry = sessionRegistry();
-        CustomAuthorizationRequestResolver authorizationRequestResolver = new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry);
 
         http
                 .authorizeRequests()
                 .antMatchers("/", "/assets/*").permitAll()
                 .anyRequest().authenticated()
+                .and()
+                /*
+                    Using custom strategy since default one creates new CSRF token for each authentication,
+                    but CSRF token should not change during authentication for GOVSSO session update.
+                    CSRF can be disabled if application does not manage its own session and cookies.
+                 */
+                .csrf().sessionAuthenticationStrategy(csrfSessionAuthStrategy())
                 .and()
                 .headers()
                 .addHeaderWriter(corsHeaderWriter())
@@ -66,7 +77,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .oauth2Login()
                 .authorizationEndpoint()
-                .authorizationRequestResolver(authorizationRequestResolver)
+                .authorizationRequestResolver(new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry))
                 .and()
                 .defaultSuccessUrl("/dashboard")
                 .failureHandler(getAuthFailureHandler())
@@ -77,12 +88,36 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .deleteCookies().invalidateHttpSession(true)
                 .and()
                 .sessionManagement()
-                .maximumSessions(1)
-                .sessionRegistry(sessionRegistry)
-                .expiredUrl("/?error=expired_session");
+                /*
+                    Using custom authentication strategy to prevent creation of new application session during
+                    each GOVSSO session update.
+                    Can be removed if stateless session policy is used.
+
+                    ´.maximumSessions(1)´ should NOT be configured here, because it creates separate default
+                    RegisterSessionAuthenticationStrategy that cannot be overridden.
+                    If you want to configure maximum sessions then CompositeSessionAuthenticationStrategy containing
+                    CompositeSessionAuthenticationStrategy and CustomRegisterSessionAuthenticationStrategy
+                    must be passed.
+                 */
+                /* TODO:
+                    Filter out onAuthentication call before they reach session authentication strategies.
+                    Initial call is made in https://github.com/spring-projects/spring-security/blob/main/web/src/main/java/org/springframework/security/web/authentication/AbstractAuthenticationProcessingFilter.java#L228
+                    a. If manage to override OAuth2LoginAuthenticationFilter, then its method attemptAuthentication
+                    could return null in case of GOVSSO session update.
+                    But since given filter is not injectable as bean and registered automatically, it cannot be
+                    overridden easily.
+                    b. Also custom CompositeSessionAuthenticationStrategy can do the general filtering but unfortunately
+                    implementation of it is not injectable as bean either. Every registered session authentication
+                    strategy is always wrapped with it: https://github.com/spring-projects/spring-security/blob/81a930204568cd1d8a68ddc4da3a3c1bf0f66a2c/config/src/main/java/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.java#L507
+                 */
+                .sessionAuthenticationStrategy(new CustomRegisterSessionAuthenticationStrategy(sessionRegistry));
     }
 
-    public HeaderWriter corsHeaderWriter() {
+    private SessionAuthenticationStrategy csrfSessionAuthStrategy() {
+        return new CustomCsrfAuthenticationStrategy(new HttpSessionCsrfTokenRepository());
+    }
+
+    private HeaderWriter corsHeaderWriter() {
         return (request, response) -> {
             // CORS is needed for automatic, in the background session extension.
             // But only for the endpoint that GOVSSO redirects to after successful re-authentication process.
@@ -120,7 +155,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     private LogoutSuccessHandler oidcLogoutSuccessHandler() {
-
         OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler =
                 new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
         oidcLogoutSuccessHandler.setPostLogoutRedirectUri(publicUrl);

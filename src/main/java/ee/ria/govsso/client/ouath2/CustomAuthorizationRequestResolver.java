@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.configuration;
+package ee.ria.govsso.client.ouath2;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,22 +30,23 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest httpServletRequest) {
-
         OAuth2AuthorizationRequest authorizationRequest = requestResolver.resolve(httpServletRequest);
-        return authorizationRequest != null ? customAuthorizationRequest(authorizationRequest, httpServletRequest) : null;
+        if (authorizationRequest == null) {
+            return null;
+        }
+        return customAuthorizationRequest(authorizationRequest, httpServletRequest);
     }
 
     @Override
-    public OAuth2AuthorizationRequest resolve(
-            HttpServletRequest httpServletRequest, String clientRegistrationId) {
-
-        OAuth2AuthorizationRequest authorizationRequest =
-                requestResolver.resolve(httpServletRequest, clientRegistrationId);
-        return authorizationRequest != null ? customAuthorizationRequest(authorizationRequest, httpServletRequest) : null;
+    public OAuth2AuthorizationRequest resolve(HttpServletRequest httpServletRequest, String clientRegistrationId) {
+        OAuth2AuthorizationRequest authorizationRequest = requestResolver.resolve(httpServletRequest, clientRegistrationId);
+        if (authorizationRequest == null) {
+            return null;
+        }
+        return customAuthorizationRequest(authorizationRequest, httpServletRequest);
     }
 
     private OAuth2AuthorizationRequest customAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest httpServletRequest) {
-
         Map<String, Object> additionalParameters = new LinkedHashMap<>(authorizationRequest.getAdditionalParameters());
 
         if (isUpdateRequest(httpServletRequest)) {

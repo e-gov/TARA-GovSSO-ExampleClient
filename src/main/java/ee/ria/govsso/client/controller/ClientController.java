@@ -5,7 +5,6 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -38,8 +37,7 @@ public class ClientController {
     public static final String DASHBOARD_MAPPING = "/dashboard";
     public static final String LOGOUT_MAPPING = "/session/logout";
 
-    @Autowired
-    SessionRegistry sessionRegistry;
+    private final SessionRegistry sessionRegistry;
     @Value("${spring.application.name}")
     private String applicationName;
     @Value("${govsso.logo}")
