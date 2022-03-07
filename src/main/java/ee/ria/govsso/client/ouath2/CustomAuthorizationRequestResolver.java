@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.thymeleaf.util.StringUtils;
@@ -61,8 +62,10 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
         if (isUpdateRequest(httpServletRequest)) {
             checkSessionExpiration(httpServletRequest.getSession());
-            additionalParameters.put("id_token_hint", getPreviousIdToken());
+            OidcIdToken previousIdToken = getPreviousIdToken();
+            additionalParameters.put("id_token_hint", previousIdToken.getTokenValue());
             additionalParameters.put("prompt", "none");
+            additionalParameters.computeIfAbsent("acr_values", v -> previousIdToken.getClaim("acr"));
         }
 
         return OAuth2AuthorizationRequest.from(authorizationRequest)
@@ -74,7 +77,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
         return StringUtils.equalsIgnoreCase(httpServletRequest.getParameter("prompt"), "none");
     }
 
-    private String getPreviousIdToken() {
+    private OidcIdToken getPreviousIdToken() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof OAuth2AuthenticationToken)) {
             throw new RuntimeException("Invalid token update request. Previous authentication was not done through OIDC.");
@@ -84,7 +87,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
             throw new RuntimeException("Invalid token update request. Previous ID token not found in session.");
         }
 
-        return user.getIdToken().getTokenValue();
+        return user.getIdToken();
     }
 
     private void checkSessionExpiration(HttpSession httpSession) {
