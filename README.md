@@ -11,11 +11,11 @@ TODO What this application does.
 ## Building and Running Locally
 
 1. Follow GOVSSO-Session/README.md to run dependent services.
-2. If you have generated new TLS certificates (doable at project GOVSSO-Session) after the last copy,
-   then copy-replace clienta.localhost.keystore.p12 and clienta.localhost.truststore.p12 files to src/main/resources.
-3. Add `127.0.0.1 gateway.localhost` line to `hosts` file. This is needed only for requests originating from govsso-client
-   when it's running locally (not in Docker Compose). It's not needed for web browsers as popular browsers already have
-   built-in support for resolving `*.localhost` subdomains.
+2. If you have generated new TLS certificates (doable at project GOVSSO-Session) after the last copy, then copy-replace
+   clienta.localhost.keystore.p12 and clienta.localhost.truststore.p12 files to src/main/resources.
+3. Add `127.0.0.1 gateway.localhost` line to `hosts` file. This is needed only for requests originating from
+   govsso-client when it's running locally (not in Docker Compose). It's not needed for web browsers as popular browsers
+   already have built-in support for resolving `*.localhost` subdomains.
 4. Run
    ```shell 
    ./mvnw spring-boot:run

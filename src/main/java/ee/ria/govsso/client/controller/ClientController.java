@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.thymeleaf.util.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,7 +34,7 @@ public class ClientController {
 
     public static final String LOGIN_VIEW_MAPPING = "/";
     public static final String DASHBOARD_MAPPING = "/dashboard";
-    public static final String LOGOUT_MAPPING = "/session/logout";
+    public static final String BACKCHANNEL_LOGOUT_MAPPING = "/backchannellogout";
 
     private final SessionRegistry sessionRegistry;
     @Value("${spring.application.name}")
@@ -71,12 +70,11 @@ public class ClientController {
     }
 
     @CrossOrigin("*")
-    @PostMapping(value = LOGOUT_MAPPING, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity backChannelLogout(@RequestParam(name = "logout_token", required = true) String logoutToken, HttpServletRequest request) {
+    @PostMapping(value = BACKCHANNEL_LOGOUT_MAPPING, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Void> backChannelLogout(@RequestParam(name = "logout_token") String logoutToken) {
         HttpHeaders responseHeaders = getHttpHeaders();
         DecodedJWT decodedLogoutToken = JWT.decode(logoutToken); //TODO remove com.auth0 dependency and use nimbus jwt instead
-        log.info("Received back-channel logout request for sid='{}'",
-                decodedLogoutToken.getClaim("sid"));
+        log.info("Received back-channel logout request for sid='{}'", decodedLogoutToken.getClaim("sid"));
         expireOidcSessions(decodedLogoutToken.getClaim("sid").asString());
         return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
     }

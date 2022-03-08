@@ -17,7 +17,11 @@ import org.thymeleaf.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
+
+import static ee.ria.govsso.client.ouath2.LocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
+import static org.springframework.web.servlet.i18n.SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME;
 
 public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
     private final OAuth2AuthorizationRequestResolver requestResolver;
@@ -53,15 +57,27 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
         String locale = httpServletRequest.getParameter("locale");
         String acr = httpServletRequest.getParameter("acr");
 
+        /*
+            OAuth2AuthorizationRequestRedirectFilter will create new session right after resolving
+            authorization request, so it's ok to create it here also.
+        */
+        HttpSession session = httpServletRequest.getSession();
         if (locale != null) {
-            additionalParameters.put("ui_locales", locale);
+            additionalParameters.put(UI_LOCALES_PARAMETER, locale);
+            /*
+                Using LOCALE_SESSION_ATTRIBUTE_NAME to store selected locale is compatible with
+                Spring SessionLocaleResolver/LocaleChangeInterceptor. You cannot use LocaleChangeInterceptor alone
+                to store selected authentication locale, because OAuth2AuthorizationRequestRedirectFilter performs
+                redirect before LocaleChangeInterceptor has an opportunity to detect locale change.
+             */
+            session.setAttribute(LOCALE_SESSION_ATTRIBUTE_NAME, new Locale(locale));
         }
         if (acr != null) {
             additionalParameters.put("acr_values", acr);
         }
 
         if (isUpdateRequest(httpServletRequest)) {
-            checkSessionExpiration(httpServletRequest.getSession());
+            checkSessionExpiration(session);
             OidcIdToken previousIdToken = getPreviousIdToken();
             additionalParameters.put("id_token_hint", previousIdToken.getTokenValue());
             additionalParameters.put("prompt", "none");
@@ -99,5 +115,4 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
             throw new SessionAuthenticationException("HttpSession has already expired. Can not continue with OIDC authentication.");
         }
     }
-
 }

@@ -2,12 +2,12 @@ package ee.ria.govsso.client.configuration;
 
 import ee.ria.govsso.client.ouath2.CustomAuthorizationRequestResolver;
 import ee.ria.govsso.client.ouath2.CustomCsrfAuthenticationStrategy;
+import ee.ria.govsso.client.ouath2.CustomOidcClientInitiatedLogoutSuccessHandler;
 import ee.ria.govsso.client.ouath2.CustomRegisterSessionAuthenticationStrategy;
-import lombok.Getter;
+import ee.ria.govsso.client.ouath2.LocalePassingLogoutHandler;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -17,12 +17,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.security.web.header.HeaderWriter;
@@ -40,18 +38,16 @@ import static org.springframework.http.HttpHeaders.ORIGIN;
 @DependsOn("SSLConfig")
 @Slf4j
 @Configuration
-@ConfigurationProperties(prefix = "govsso")
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private static final List<String> SESSION_UPDATE_CORS_ALLOWED_ENDPOINTS =
             Arrays.asList("/login/oauth2/code/govsso", "/dashboard");
-
-    @Getter
-    @Setter
-    String publicUrl;
     private final ClientRegistrationRepository clientRegistrationRepository;
+
+    @Value("${govsso.public-url}")
+    private String publicUrl;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -59,7 +55,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         http
                 .authorizeRequests()
-                .antMatchers("/", "/assets/*","/scripts/*").permitAll()
+                .antMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 /*
@@ -67,7 +63,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     but CSRF token should not change during authentication for GOVSSO session update.
                     CSRF can be disabled if application does not manage its own session and cookies.
                  */
-                .csrf().sessionAuthenticationStrategy(csrfSessionAuthStrategy())
+                .csrf()
+                .sessionAuthenticationStrategy(csrfSessionAuthStrategy())
+                .ignoringAntMatchers("/backchannellogout")
                 .and()
                 .headers()
                 .addHeaderWriter(corsHeaderWriter())
@@ -82,11 +80,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .defaultSuccessUrl("/dashboard")
                 .failureHandler(getAuthFailureHandler())
                 .and()
-                .logout()
-                .logoutSuccessHandler(oidcLogoutSuccessHandler())
-                .logoutUrl("/oauth/logout")
-                .deleteCookies().invalidateHttpSession(true)
-                .and()
+                .logout(logoutConfigurer -> {
+                    logoutConfigurer
+                            .logoutUrl("/oauth/logout")
+                            .deleteCookies()
+                            .clearAuthentication(true)
+                            .invalidateHttpSession(true);
+                    /*
+                        Using custom handlers to pass ui_locales parameter to GOVSSO logout flow.
+                    */
+                    logoutConfigurer
+                            .logoutSuccessHandler(new CustomOidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository, publicUrl))
+                            .getLogoutHandlers().add(0, new LocalePassingLogoutHandler());
+                })
                 .sessionManagement()
                 /*
                     Using custom authentication strategy to prevent creation of new application session during
@@ -152,12 +158,5 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 redirectStrategy.sendRedirect(request, response, "/?error=authentication_failure");
             }
         };
-    }
-
-    private LogoutSuccessHandler oidcLogoutSuccessHandler() {
-        OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler =
-                new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
-        oidcLogoutSuccessHandler.setPostLogoutRedirectUri(publicUrl);
-        return oidcLogoutSuccessHandler;
     }
 }

@@ -1,4 +1,4 @@
-$("#localeOptions").change(function() {
+$("#localeOptions").change(function () {
     var optionValue = $(this).val();
     var url = $('#loginUrl').attr("href")
     if (optionValue === "none") {
@@ -8,7 +8,7 @@ $("#localeOptions").change(function() {
     }
 });
 
-$("#acrOptions").change(function() {
+$("#acrOptions").change(function () {
     var optionValue = $(this).val();
     var url = $('#loginUrl').attr("href")
     if (optionValue === "none") {
@@ -18,7 +18,7 @@ $("#acrOptions").change(function() {
     }
 });
 
-function removeParameter(parameter){
+function removeParameter(parameter) {
     var queryString = $('#loginUrl').prop("search")
     urlParams = new URLSearchParams(queryString);
     urlParams.delete(parameter)
