@@ -51,28 +51,28 @@
                 </div>
             </div>
 
-            <h3>Identsustõend</h3>
+            <h3>GOVSSO Token Endpoint Response</h3>
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <tbody>
+                    <tr>
+                        <td>id_token</td>
+                        <td th:text="${id_token}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>GOVSSO ID Token</h3>
             <div class="table-responsive">
                 <table class="table table-striped table-sm">
                     <thead>
                     <tr>
-                        <th>Väide</th>
-                        <th>Väärtus</th>
+                        <th>Claim</th>
+                        <th>Value</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td>given_name</td>
-                        <td th:text="${given_name}"></td>
-                    </tr>
-                    <tr>
-                        <td>family_name</td>
-                        <td th:text="${family_name}"></td>
-                    </tr>
-                    <tr>
-                        <td>birthdate</td>
-                        <td th:text="${birthdate}"></td>
-                    </tr>
                     <tr>
                         <td>jti</td>
                         <td th:text="${jti}"></td>
@@ -98,20 +98,32 @@
                         <td th:text="${sub}"></td>
                     </tr>
                     <tr>
-                        <td>nonce</td>
-                        <td th:text="${nonce}"></td>
+                        <td>birthdate</td>
+                        <td th:text="${birthdate}"></td>
                     </tr>
                     <tr>
-                        <td>at_hash</td>
-                        <td th:text="${at_hash}"></td>
+                        <td>given_name</td>
+                        <td th:text="${given_name}"></td>
+                    </tr>
+                    <tr>
+                        <td>family_name</td>
+                        <td th:text="${family_name}"></td>
+                    </tr>
+                    <tr>
+                        <td>amr</td>
+                        <td th:text="${amr}"></td>
+                    </tr>
+                    <tr>
+                        <td>nonce</td>
+                        <td th:text="${nonce}"></td>
                     </tr>
                     <tr>
                         <td>acr</td>
                         <td th:text="${acr}"></td>
                     </tr>
                     <tr>
-                        <td>id_token</td>
-                        <td th:text="${id_token}"></td>
+                        <td>at_hash</td>
+                        <td th:text="${at_hash}"></td>
                     </tr>
                     <tr>
                         <td>sid</td>

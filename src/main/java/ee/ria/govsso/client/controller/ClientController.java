@@ -109,21 +109,21 @@ public class ClientController {
     }
 
     private void addIdTokenDataToModel(@AuthenticationPrincipal OidcUser oidcUser, ModelAndView model) {
+        model.addObject("id_token", oidcUser.getIdToken().getTokenValue());
 
-        model.addObject("given_name", oidcUser.getClaimAsString("given_name"));
-        model.addObject("family_name", oidcUser.getClaimAsString("family_name"));
-        model.addObject("birthdate", oidcUser.getClaimAsString("birthdate"));
         model.addObject("jti", oidcUser.getClaimAsString("jti"));
         model.addObject("iss", oidcUser.getIssuer());
         model.addObject("aud", oidcUser.getAudience());
         model.addObject("exp", oidcUser.getExpiresAt());
         model.addObject("iat", oidcUser.getIssuedAt());
         model.addObject("sub", oidcUser.getSubject());
+        model.addObject("birthdate", oidcUser.getClaimAsString("birthdate"));
+        model.addObject("given_name", oidcUser.getClaimAsString("given_name"));
+        model.addObject("family_name", oidcUser.getClaimAsString("family_name"));
+        model.addObject("amr", oidcUser.getAuthenticationMethods());
         model.addObject("nonce", oidcUser.getNonce());
-        model.addObject("at_hash", oidcUser.getAccessTokenHash());
         model.addObject("acr", oidcUser.getAuthenticationContextClass());
-        model.addObject("id_token", oidcUser.getIdToken().getTokenValue());
-        model.addObject("id_token_content", oidcUser.getIdToken().getClaims().toString());
+        model.addObject("at_hash", oidcUser.getAccessTokenHash());
         model.addObject("sid", oidcUser.getIdToken().getClaim("sid"));
     }
 
