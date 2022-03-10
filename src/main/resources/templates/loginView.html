@@ -21,8 +21,7 @@
     <div>
         <ul class=" navbar-nav px-3">
             <li class="nav-item text-nowrap">
-                <a id="loginUrl" class="btn btn-primary" role="button" href="/oauth2/authorization/govsso">Logi
-                    sisse &raquo;</a>
+                <a id="loginUrl" class="btn btn-primary" role="button" href="/oauth2/authorization/govsso">Log in &raquo;</a>
             </li>
         </ul>
     </div>
@@ -33,31 +32,29 @@
         <div class="container">
             <div th:if="${param.error}" th:switch="${param.error[0]}">
                 <div class="alert alert-danger" role="alert" th:case="invalid_session">
-                    Seanssi ei leitud!
+                    Invalid session!
                 </div>
                 <div class="alert alert-danger" role="alert" th:case="expired_session">
-                    Seanss on lõpetatud!
+                    Session expired!
                 </div>
                 <div class="alert alert-info" role="alert" th:case="user_cancel">
-                    Kasutaja katkestas autentimise!
+                    User cancelled authentication!
                 </div>
                 <div class="alert alert-danger" role="alert" th:case="*">
-                    Viga seansi uuendamisel või autentimisel!
+                    Error during authentication!
                 </div>
             </div>
-            <h1 class="display-3" th:text="${application_name} + ' e-teenus'">Tere tulemast!</h1>
-            <p>Tere tulemast kasutama meie e-teenust! </p>
-            <p>Oma töölaua nägemiseks palume Sul oma isik eletrooniliselt
-                tuvastada. Meie e-teenus kasutab turvaliseks autentimiseks riigi autentimisteenuse ühekordse
-                sisselogimise lahendust.</p>
+            <h1 class="display-3" th:text="${application_name} + ' e-teenus'">Welcome!</h1>
+            <p>Welcome to our e-service! </p>
+            <p>To access your desktop, please log in.</p>
             <br>
-            <p>locale: <select id="localeOptions">
+            <p>Authentication request locale: <select id="localeOptions">
                 <option value="none">(none)</option>
                 <option value="et">et</option>
                 <option value="en">en</option>
                 <option value="ru">ru</option>
             </select></p>
-            <p>acr: <select id="acrOptions">
+            <p>Authentication request ACR: <select id="acrOptions">
                 <option value="none">(none)</option>
                 <option value="low">low</option>
                 <option value="substantial">substantial</option>

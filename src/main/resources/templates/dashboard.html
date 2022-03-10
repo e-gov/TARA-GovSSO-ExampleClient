@@ -11,7 +11,7 @@
     <!-- Bootstrap CSS -->
     <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
           integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" rel="stylesheet">
-    <title th:text="${application_name} + ' - Töölaud'"></title>
+    <title th:text="${application_name} + ' - Desktop'"></title>
 </head>
 <body>
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
@@ -23,7 +23,7 @@
     <ul class=" navbar-nav px-3">
         <li class="nav-item text-nowrap">
             <form method="post" th:action="@{/oauth/logout}">
-                <input class="btn btn-outline-secondary" name="logout_button" type="submit" value="Logi välja"/>
+                <input class="btn btn-outline-secondary" name="logout_button" type="submit" value="Log out"/>
             </form>
         </li>
     </ul>
@@ -43,10 +43,10 @@
         </nav>
         <main class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4" role="main">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-                <h1 class="h2">Töölaud</h1>
+                <h1 class="h2">Desktop</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <button class="btn btn-sm btn-outline-secondary" onclick="updateGovssoSession();">
-                        Värskenda seanssi
+                        Update session
                     </button>
                 </div>
             </div>
