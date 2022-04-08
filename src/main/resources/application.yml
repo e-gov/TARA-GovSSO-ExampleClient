@@ -45,4 +45,4 @@ server:
 
 govsso:
   public-url: https://clienta.localhost:11443
-  logo: client-a.png
+  logo: client-a.svg
