@@ -23,8 +23,10 @@ import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
-import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.header.HeaderWriter;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,6 +34,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static ee.ria.govsso.client.configuration.CookieConfiguration.COOKIE_NAME_XSRF_TOKEN;
 import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS;
 import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static org.springframework.http.HttpHeaders.ORIGIN;
@@ -45,6 +48,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private static final List<String> SESSION_UPDATE_CORS_ALLOWED_ENDPOINTS =
             Arrays.asList("/login/oauth2/code/govsso", "/dashboard");
+
     private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Value("${govsso.public-url}")
@@ -55,6 +59,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         SessionRegistry sessionRegistry = sessionRegistry();
 
         http
+                .requestCache()
+                    .requestCache(httpSessionRequestCache())
+                    .and()
                 .authorizeRequests()
                     .antMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout")
                         .permitAll()
@@ -68,9 +75,24 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                  */
                 .csrf()
                     .ignoringAntMatchers("/backchannellogout")
+                    .csrfTokenRepository(csrfTokenRepository())
                     .sessionAuthenticationStrategy(csrfSessionAuthStrategy())
                     .and()
                 .headers()
+                    .xssProtection().xssProtectionEnabled(false)
+                        .and()
+                    .frameOptions().deny()
+                    .contentSecurityPolicy(SecurityConstants.CONTENT_SECURITY_POLICY)
+                        /*
+                         *  Prevents browser from blocking functionality if views do not meet CSP requirements.
+                         *  Problems are still displayed at browser console.
+                         *  TODO: Remove this once given problems are fixed.
+                         */
+                        .reportOnly()
+                        .and()
+                    .httpStrictTransportSecurity()
+                    .maxAgeInSeconds(186 * 24 * 60 * 60)
+                        .and()
                     .addHeaderWriter(corsHeaderWriter())
                         .and()
                     .oauth2Login()
@@ -82,11 +104,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         .failureHandler(getAuthFailureHandler())
                     .and()
                 .logout(logoutConfigurer -> {
-                    logoutConfigurer
-                            .logoutUrl("/oauth/logout")
-                            .deleteCookies()
-                            .clearAuthentication(true)
-                            .invalidateHttpSession(true);
+                    logoutConfigurer.logoutUrl("/oauth/logout");
                     /*
                         Using custom handlers to pass ui_locales parameter to GOVSSO logout flow.
                     */
@@ -95,7 +113,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                             .getLogoutHandlers().add(0, new LocalePassingLogoutHandler());
                 })
                 .sessionManagement()
-                    /*
+                     /*
                         Using custom authentication strategy to prevent creation of new application session during
                         each GOVSSO session update.
                         Can be removed if stateless session policy is used.
@@ -105,7 +123,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         If you want to configure maximum sessions then CompositeSessionAuthenticationStrategy containing
                         CompositeSessionAuthenticationStrategy and CustomRegisterSessionAuthenticationStrategy
                         must be passed.
-                     */
+                    */
                     /* TODO:
                         Filter out onAuthentication call before they reach session authentication strategies.
                         Initial call is made in https://github.com/spring-projects/spring-security/blob/main/web/src/main/java/org/springframework/security/web/authentication/AbstractAuthenticationProcessingFilter.java#L228
@@ -120,8 +138,23 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .sessionAuthenticationStrategy(new CustomRegisterSessionAuthenticationStrategy(sessionRegistry));
     }
 
+    private HttpSessionRequestCache httpSessionRequestCache() {
+        HttpSessionRequestCache httpSessionRequestCache = new HttpSessionRequestCache();
+        // Disables session creation if session does not exist and any request returns 401 unauthorized error.
+        httpSessionRequestCache.setCreateSessionAllowed(false);
+        return httpSessionRequestCache;
+    }
+
     private SessionAuthenticationStrategy csrfSessionAuthStrategy() {
-        return new CustomCsrfAuthenticationStrategy(new HttpSessionCsrfTokenRepository());
+        return new CustomCsrfAuthenticationStrategy(csrfTokenRepository());
+    }
+
+    private CsrfTokenRepository csrfTokenRepository() {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookieName(COOKIE_NAME_XSRF_TOKEN);
+        repository.setSecure(true);
+        repository.setCookiePath("/");
+        return repository;
     }
 
     private HeaderWriter corsHeaderWriter() {
