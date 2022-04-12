@@ -56,28 +56,31 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         http
                 .authorizeRequests()
-                .antMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout").permitAll()
-                .anyRequest().authenticated()
-                .and()
+                    .antMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout")
+                        .permitAll()
+                    .anyRequest()
+                        .authenticated()
+                    .and()
                 /*
                     Using custom strategy since default one creates new CSRF token for each authentication,
                     but CSRF token should not change during authentication for GOVSSO session update.
                     CSRF can be disabled if application does not manage its own session and cookies.
                  */
                 .csrf()
-                .sessionAuthenticationStrategy(csrfSessionAuthStrategy())
-                .ignoringAntMatchers("/backchannellogout")
-                .and()
+                    .ignoringAntMatchers("/backchannellogout")
+                    .sessionAuthenticationStrategy(csrfSessionAuthStrategy())
+                    .and()
                 .headers()
-                .addHeaderWriter(corsHeaderWriter())
-                .and()
-                .oauth2Login()
-                .authorizationEndpoint()
-                .authorizationRequestResolver(new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry))
-                .and()
-                .defaultSuccessUrl("/dashboard")
-                .failureHandler(getAuthFailureHandler())
-                .and()
+                    .addHeaderWriter(corsHeaderWriter())
+                        .and()
+                    .oauth2Login()
+                        .authorizationEndpoint()
+                        .authorizationRequestResolver(
+                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry))
+                            .and()
+                        .defaultSuccessUrl("/dashboard")
+                        .failureHandler(getAuthFailureHandler())
+                    .and()
                 .logout(logoutConfigurer -> {
                     logoutConfigurer
                             .logoutUrl("/oauth/logout")
@@ -92,29 +95,29 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                             .getLogoutHandlers().add(0, new LocalePassingLogoutHandler());
                 })
                 .sessionManagement()
-                /*
-                    Using custom authentication strategy to prevent creation of new application session during
-                    each GOVSSO session update.
-                    Can be removed if stateless session policy is used.
+                    /*
+                        Using custom authentication strategy to prevent creation of new application session during
+                        each GOVSSO session update.
+                        Can be removed if stateless session policy is used.
 
-                    ´.maximumSessions(1)´ should NOT be configured here, because it creates separate default
-                    RegisterSessionAuthenticationStrategy that cannot be overridden.
-                    If you want to configure maximum sessions then CompositeSessionAuthenticationStrategy containing
-                    CompositeSessionAuthenticationStrategy and CustomRegisterSessionAuthenticationStrategy
-                    must be passed.
-                 */
-                /* TODO:
-                    Filter out onAuthentication call before they reach session authentication strategies.
-                    Initial call is made in https://github.com/spring-projects/spring-security/blob/main/web/src/main/java/org/springframework/security/web/authentication/AbstractAuthenticationProcessingFilter.java#L228
-                    a. If manage to override OAuth2LoginAuthenticationFilter, then its method attemptAuthentication
-                    could return null in case of GOVSSO session update.
-                    But since given filter is not injectable as bean and registered automatically, it cannot be
-                    overridden easily.
-                    b. Also custom CompositeSessionAuthenticationStrategy can do the general filtering but unfortunately
-                    implementation of it is not injectable as bean either. Every registered session authentication
-                    strategy is always wrapped with it: https://github.com/spring-projects/spring-security/blob/81a930204568cd1d8a68ddc4da3a3c1bf0f66a2c/config/src/main/java/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.java#L507
-                 */
-                .sessionAuthenticationStrategy(new CustomRegisterSessionAuthenticationStrategy(sessionRegistry));
+                        ´.maximumSessions(1)´ should NOT be configured here, because it creates separate default
+                        RegisterSessionAuthenticationStrategy that cannot be overridden.
+                        If you want to configure maximum sessions then CompositeSessionAuthenticationStrategy containing
+                        CompositeSessionAuthenticationStrategy and CustomRegisterSessionAuthenticationStrategy
+                        must be passed.
+                     */
+                    /* TODO:
+                        Filter out onAuthentication call before they reach session authentication strategies.
+                        Initial call is made in https://github.com/spring-projects/spring-security/blob/main/web/src/main/java/org/springframework/security/web/authentication/AbstractAuthenticationProcessingFilter.java#L228
+                        a. If manage to override OAuth2LoginAuthenticationFilter, then its method attemptAuthentication
+                        could return null in case of GOVSSO session update.
+                        But since given filter is not injectable as bean and registered automatically, it cannot be
+                        overridden easily.
+                        b. Also custom CompositeSessionAuthenticationStrategy can do the general filtering but unfortunately
+                        implementation of it is not injectable as bean either. Every registered session authentication
+                        strategy is always wrapped with it: https://github.com/spring-projects/spring-security/blob/81a930204568cd1d8a68ddc4da3a3c1bf0f66a2c/config/src/main/java/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.java#L507
+                     */
+                    .sessionAuthenticationStrategy(new CustomRegisterSessionAuthenticationStrategy(sessionRegistry));
     }
 
     private SessionAuthenticationStrategy csrfSessionAuthStrategy() {
