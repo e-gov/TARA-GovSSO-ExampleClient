@@ -2,7 +2,9 @@
 
 # GOVSSO Example Client
 
-TODO What this application does.
+Example client application that integrates with GOVSSO service with protocol specified
+at https://e-gov.github.io/GOVSSO/TechnicalSpecification . Demonstrates authentication, session update, RP-initiated
+logout and back-channel logout flows.
 
 ## Prerequisites
 
@@ -10,11 +12,12 @@ TODO What this application does.
 
 ## Building and Running Locally
 
-1. Follow GOVSSO-Session/README.md to run dependent services.
+1. Follow [GOVSSO-Session/README.md](https://github.com/e-gov/GOVSSO-Session/blob/master/README.md) to run dependent
+   services.
 2. If you have generated new TLS certificates (doable at project GOVSSO-Session) after the last copy, then copy-replace
-   clienta.localhost.keystore.p12 and clienta.localhost.truststore.p12 files to src/main/resources.
+   `clienta.localhost.keystore.p12` and `clienta.localhost.truststore.p12` files to `src/main/resources`.
 3. Add `127.0.0.1 gateway.localhost` line to `hosts` file. This is needed only for requests originating from
-   govsso-client when it's running locally (not in Docker Compose). It's not needed for web browsers as popular browsers
+   GOVSSO-Client when it's running locally (not in Docker Compose). It's not needed for web browsers as popular browsers
    already have built-in support for resolving `*.localhost` subdomains.
 4. Run
    ```shell 
@@ -44,10 +47,4 @@ TODO What this application does.
 ## Endpoints
 
 * http://localhost:11443/ - UI
-* http://localhost:11443/actuator/health
-* http://localhost:11443/actuator/health/readiness
-* http://localhost:11443/actuator/info
-
-## Configuration
-
-TODO
+* http://localhost:11443/actuator - maintenance endpoints

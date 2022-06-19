@@ -13,7 +13,7 @@
     <groupId>ee.ria.govsso</groupId>
     <artifactId>govsso-client</artifactId>
     <version>0.4.0</version>
-    <!-- Support servlet container as described in https://docs.spring.io/spring-boot/docs/2.6.3/reference/htmlsingle/#howto.traditional-deployment.war -->
+    <!-- Support servlet container as described in https://docs.spring.io/spring-boot/docs/2.7.0/reference/htmlsingle/#howto.traditional-deployment.war -->
     <packaging>war</packaging>
 
     <name>GOVSSO Example Client</name>
@@ -70,7 +70,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
-        <!-- Support servlet container as described in https://docs.spring.io/spring-boot/docs/2.6.3/reference/htmlsingle/#howto.traditional-deployment.war -->
+        <!-- Support servlet container as described in https://docs.spring.io/spring-boot/docs/2.7.0/reference/htmlsingle/#howto.traditional-deployment.war -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
