@@ -63,7 +63,7 @@ public class SecurityConfiguration {
                     .requestCache(httpSessionRequestCache())
                     .and()
                 .authorizeRequests()
-                    .antMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout")
+                    .antMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout", "/actuator/**")
                         .permitAll()
                     .anyRequest()
                         .authenticated()
