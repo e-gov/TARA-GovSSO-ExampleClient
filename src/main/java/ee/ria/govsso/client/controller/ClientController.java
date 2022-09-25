@@ -50,7 +50,7 @@ public class ClientController {
             model.addObject("application_logo", applicationLogo);
             return model;
         } else {
-            log.info("User has been authenticated by GOVSSO, redirecting browser to dashboard. subject='{}'", oidcUser.getSubject());
+            log.info("User has been authenticated by GovSSO, redirecting browser to dashboard. subject='{}'", oidcUser.getSubject());
             return new ModelAndView("redirect:/dashboard");
         }
     }

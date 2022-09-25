@@ -70,7 +70,7 @@ public class SecurityConfiguration {
                     .and()
                 /*
                     Using custom strategy since default one creates new CSRF token for each authentication,
-                    but CSRF token should not change during authentication for GOVSSO session update.
+                    but CSRF token should not change during authentication for GovSSO session update.
                     CSRF can be disabled if application does not manage its own session and cookies.
                  */
                 .csrf()
@@ -106,7 +106,7 @@ public class SecurityConfiguration {
                 .logout(logoutConfigurer -> {
                     logoutConfigurer.logoutUrl("/oauth/logout");
                     /*
-                        Using custom handlers to pass ui_locales parameter to GOVSSO logout flow.
+                        Using custom handlers to pass ui_locales parameter to GovSSO logout flow.
                     */
                     logoutConfigurer
                             .logoutSuccessHandler(new CustomOidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository, publicUrl))
@@ -115,7 +115,7 @@ public class SecurityConfiguration {
                 .sessionManagement()
                      /*
                         Using custom authentication strategy to prevent creation of new application session during
-                        each GOVSSO session update.
+                        each GovSSO session update.
                         Can be removed if stateless session policy is used.
 
                         ´.maximumSessions(1)´ should NOT be configured here, because it creates separate default
@@ -128,7 +128,7 @@ public class SecurityConfiguration {
                         Filter out onAuthentication call before they reach session authentication strategies.
                         Initial call is made in https://github.com/spring-projects/spring-security/blob/main/web/src/main/java/org/springframework/security/web/authentication/AbstractAuthenticationProcessingFilter.java#L228
                         a. If manage to override OAuth2LoginAuthenticationFilter, then its method attemptAuthentication
-                        could return null in case of GOVSSO session update.
+                        could return null in case of GovSSO session update.
                         But since given filter is not injectable as bean and registered automatically, it cannot be
                         overridden easily.
                         b. Also custom CompositeSessionAuthenticationStrategy can do the general filtering but unfortunately
@@ -161,7 +161,7 @@ public class SecurityConfiguration {
     private HeaderWriter corsHeaderWriter() {
         return (request, response) -> {
             // CORS is needed for automatic, in the background session extension.
-            // But only for the endpoint that GOVSSO redirects to after successful re-authentication process.
+            // But only for the endpoint that GovSSO redirects to after successful re-authentication process.
             // For that redirect Origin header is set to "null", since request comes from a "privacy-sensitive" context.
             // So setting CORS headers for given case only.
             // '/dashboard' must be included since the OAuth2 endpoint in turn redirects to dashboard.

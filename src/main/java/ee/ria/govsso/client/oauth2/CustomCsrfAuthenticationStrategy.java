@@ -17,7 +17,7 @@ public class CustomCsrfAuthenticationStrategy implements SessionAuthenticationSt
 
     @Override
     public void onAuthentication(Authentication authentication, HttpServletRequest request, HttpServletResponse response) throws SessionAuthenticationException {
-        // Should not replace CSRF token during GOVSSO session update process.
+        // Should not replace CSRF token during GovSSO session update process.
         if (!AuthenticationUtil.sessionMatchesWithExistingAuthToken(authentication)) {
             replaceCsrfToken(request, response);
         }

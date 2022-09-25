@@ -14,7 +14,7 @@ public class CustomRegisterSessionAuthenticationStrategy extends RegisterSession
 
     @Override
     public void onAuthentication(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
-        // Should not create new application session during GOVSSO session update process.
+        // Should not create new application session during GovSSO session update process.
         if (!AuthenticationUtil.sessionMatchesWithExistingAuthToken(authentication)) {
             super.onAuthentication(authentication, request, response);
         }
