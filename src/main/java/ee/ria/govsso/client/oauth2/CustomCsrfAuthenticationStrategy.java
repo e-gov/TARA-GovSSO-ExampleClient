@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.ouath2;
+package ee.ria.govsso.client.oauth2;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;

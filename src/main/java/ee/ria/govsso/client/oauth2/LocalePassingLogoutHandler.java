@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.ouath2;
+package ee.ria.govsso.client.oauth2;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;

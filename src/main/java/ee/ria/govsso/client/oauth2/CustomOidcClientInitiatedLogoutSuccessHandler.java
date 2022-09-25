@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.ouath2;
+package ee.ria.govsso.client.oauth2;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -16,7 +16,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-import static ee.ria.govsso.client.ouath2.LocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
+import static ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
 
 /**
  * A custom logout success handler for initiating OIDC logout with additional ui_locales parameter.

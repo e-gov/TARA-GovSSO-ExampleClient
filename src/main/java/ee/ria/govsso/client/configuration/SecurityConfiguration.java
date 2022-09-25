@@ -1,10 +1,10 @@
 package ee.ria.govsso.client.configuration;
 
-import ee.ria.govsso.client.ouath2.CustomAuthorizationRequestResolver;
-import ee.ria.govsso.client.ouath2.CustomCsrfAuthenticationStrategy;
-import ee.ria.govsso.client.ouath2.CustomOidcClientInitiatedLogoutSuccessHandler;
-import ee.ria.govsso.client.ouath2.CustomRegisterSessionAuthenticationStrategy;
-import ee.ria.govsso.client.ouath2.LocalePassingLogoutHandler;
+import ee.ria.govsso.client.oauth2.CustomAuthorizationRequestResolver;
+import ee.ria.govsso.client.oauth2.CustomCsrfAuthenticationStrategy;
+import ee.ria.govsso.client.oauth2.CustomOidcClientInitiatedLogoutSuccessHandler;
+import ee.ria.govsso.client.oauth2.CustomRegisterSessionAuthenticationStrategy;
+import ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.ouath2;
+package ee.ria.govsso.client.oauth2;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import static ee.ria.govsso.client.ouath2.LocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
+import static ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
 import static org.springframework.web.servlet.i18n.SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME;
 
 public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
