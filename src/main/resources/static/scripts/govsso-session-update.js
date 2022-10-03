@@ -1,4 +1,4 @@
-function updateGovssoSession() {
+function updateGovSsoSession() {
     (async () => {
         await fetch("/oauth2/authorization/govsso?prompt=none", {
             method: 'GET',
