@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.4</version>
+        <version>2.7.5</version>
         <relativePath/><!-- Lookup parent from repository. -->
     </parent>
 
@@ -30,13 +30,16 @@
         (see https://issues.apache.org/jira/browse/MNG-4979 ). -->
         <maven.compiler.release>17</maven.compiler.release>
         <spring-boot.build-image.imageName>${project.artifactId}:latest</spring-boot.build-image.imageName><!-- Use "latest" tag instead of version tag. -->
+
+        <!-- TODO Remove when Spring Boot includes Spring Security >= 5.7.5 -->
+        <spring-security.version>5.7.5</spring-security.version>
     </properties>
 
     <dependencies><!-- Ordered by scope, groupId, artifactId. -->
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>4.0.0</version>
+            <version>4.2.1</version>
         </dependency>
         <dependency>
             <groupId>net.logstash.logback</groupId>
