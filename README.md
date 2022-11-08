@@ -6,7 +6,8 @@ Example client application that integrates with GovSSO service with protocol spe
 at https://e-gov.github.io/GOVSSO/TechnicalSpecification . Demonstrates authentication, session update, RP-initiated
 logout and back-channel logout flows.
 
-**🔴 NB❗ Validations and checks are not fully implemented yet❗ Example code and configuration in this repository cannot be used as a reference yet❗ 🔴**
+**🔴 NB❗ Currently, this is a proof of concept implementation, not a reference implementation❗ Validations and checks
+are not fully implemented yet❗ Example code and configuration in this repository cannot be used as a reference yet❗ 🔴**
 
 ## Prerequisites
 
