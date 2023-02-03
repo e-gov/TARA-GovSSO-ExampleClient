@@ -27,6 +27,8 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.session.ConcurrentSessionFilter;
+import org.springframework.security.web.session.SimpleRedirectSessionInformationExpiredStrategy;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -121,7 +123,7 @@ public class SecurityConfiguration {
                         ´.maximumSessions(1)´ should NOT be configured here, because it creates separate default
                         RegisterSessionAuthenticationStrategy that cannot be overridden.
                         If you want to configure maximum sessions then CompositeSessionAuthenticationStrategy containing
-                        CompositeSessionAuthenticationStrategy and CustomRegisterSessionAuthenticationStrategy
+                        RegisterSessionAuthenticationStrategy and CustomRegisterSessionAuthenticationStrategy
                         must be passed.
                     */
                     /* TODO:
@@ -135,9 +137,32 @@ public class SecurityConfiguration {
                         implementation of it is not injectable as bean either. Every registered session authentication
                         strategy is always wrapped with it: https://github.com/spring-projects/spring-security/blob/81a930204568cd1d8a68ddc4da3a3c1bf0f66a2c/config/src/main/java/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.java#L507
                      */
-                    .sessionAuthenticationStrategy(new CustomRegisterSessionAuthenticationStrategy(sessionRegistry));
+                    .sessionAuthenticationStrategy(new CustomRegisterSessionAuthenticationStrategy(sessionRegistry))
+                    .and()
+                /* This example does not use Spring Session, thus user session storage is managed by the servlet
+                 * container. Because there is no good way to query all the active sessions from the servlet container,
+                 * we can't just delete all the relevant sessions when handling a back-channel logout request. Luckily
+                 * for us, Spring Security provides a way to limit the number of concurrent sessions a single user can
+                 * have, which just happens to have similar issues. This means we can use existing code meant to limit
+                 * the number of concurrent sessions per user to make back-channel logout work.
+                 *
+                 * Back-channel logout expires relevant sessions from SessionRegistry but SessionRegistry is not used
+                 * to read session data when handling a request. ConcurrentSessionFilter checks if the session at hand
+                 * has been marked expired and performs logout if that is the case. Thus, ConcurrentSessionFilter is
+                 * required to make back-channel logout work.
+                 *
+                 * TODO (GSSO-545): See if we could use `.sessionManagement().maximumSessions(-1)` instead of
+                 *                  configuring `ConcurrentSessionFilter` manually
+                 */
+                .addFilter(concurrentSessionFilter());
         // @formatter:on
         return http.build();
+    }
+
+    private ConcurrentSessionFilter concurrentSessionFilter() {
+        return new ConcurrentSessionFilter(
+                sessionRegistry(),
+                new SimpleRedirectSessionInformationExpiredStrategy("/?error=expired_session"));
     }
 
     private HttpSessionRequestCache httpSessionRequestCache() {
