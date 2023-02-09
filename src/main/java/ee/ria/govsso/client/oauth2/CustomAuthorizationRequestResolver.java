@@ -61,6 +61,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
             authorization request, so it's ok to create it here also.
         */
         HttpSession session = httpServletRequest.getSession();
+        httpServletRequest.changeSessionId();
         if (locale != null) {
             additionalParameters.put(UI_LOCALES_PARAMETER, locale);
             /*
