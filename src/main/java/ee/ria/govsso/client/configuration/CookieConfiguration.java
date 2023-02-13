@@ -36,7 +36,7 @@ public class CookieConfiguration {
     CookieSameSiteSupplier csrfCookieSameSiteSupplier() {
         return CookieSameSiteSupplier.ofStrict().whenHasName(COOKIE_NAME_XSRF_TOKEN);
     }
-    
+
     @Bean
     public ServletContextInitializer servletContextInitializer() {
         return servletContext -> servletContext.getSessionCookieConfig().setName(COOKIE_NAME_SESSION);

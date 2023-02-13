@@ -5,6 +5,8 @@ import ee.ria.govsso.client.oauth2.CustomCsrfAuthenticationStrategy;
 import ee.ria.govsso.client.oauth2.CustomOidcClientInitiatedLogoutSuccessHandler;
 import ee.ria.govsso.client.oauth2.CustomRegisterSessionAuthenticationStrategy;
 import ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,8 +30,6 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -58,12 +58,13 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         SessionRegistry sessionRegistry = sessionRegistry();
 
+        // @formatter:off
         http
                 .requestCache()
                     .requestCache(httpSessionRequestCache())
                     .and()
-                .authorizeRequests()
-                    .antMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout", "/actuator/**")
+                .authorizeHttpRequests()
+                    .requestMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout", "/actuator/**")
                         .permitAll()
                     .anyRequest()
                         .authenticated()
@@ -74,13 +75,12 @@ public class SecurityConfiguration {
                     CSRF can be disabled if application does not manage its own session and cookies.
                  */
                 .csrf()
-                    .ignoringAntMatchers("/backchannellogout")
+                    .ignoringRequestMatchers("/backchannellogout")
                     .csrfTokenRepository(csrfTokenRepository())
                     .sessionAuthenticationStrategy(csrfSessionAuthStrategy())
                     .and()
                 .headers()
-                    .xssProtection().xssProtectionEnabled(false)
-                        .and()
+                    .xssProtection().disable()
                     .frameOptions().deny()
                     .contentSecurityPolicy(SecurityConstants.CONTENT_SECURITY_POLICY)
                         /*
@@ -136,6 +136,7 @@ public class SecurityConfiguration {
                         strategy is always wrapped with it: https://github.com/spring-projects/spring-security/blob/81a930204568cd1d8a68ddc4da3a3c1bf0f66a2c/config/src/main/java/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.java#L507
                      */
                     .sessionAuthenticationStrategy(new CustomRegisterSessionAuthenticationStrategy(sessionRegistry));
+        // @formatter:on
         return http.build();
     }
 

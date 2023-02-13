@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.5</version>
+        <version>3.0.2</version>
         <relativePath/><!-- Lookup parent from repository. -->
     </parent>
 
@@ -30,9 +30,6 @@
         (see https://issues.apache.org/jira/browse/MNG-4979 ). -->
         <maven.compiler.release>17</maven.compiler.release>
         <spring-boot.build-image.imageName>${project.artifactId}:latest</spring-boot.build-image.imageName><!-- Use "latest" tag instead of version tag. -->
-
-        <!-- TODO Remove when Spring Boot includes Spring Security >= 5.7.5 -->
-        <spring-security.version>5.7.5</spring-security.version>
     </properties>
 
     <dependencies><!-- Ordered by scope, groupId, artifactId. -->
@@ -67,6 +64,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -123,11 +124,8 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <configuration>
-                    <offline>true</offline><!-- TODO Remove when >= 5.0.0 is used, there offline=true is default. -->
-                </configuration>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

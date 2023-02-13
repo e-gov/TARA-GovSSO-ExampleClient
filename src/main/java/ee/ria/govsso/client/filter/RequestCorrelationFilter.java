@@ -1,5 +1,9 @@
 package ee.ria.govsso.client.filter;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -8,18 +12,14 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.info.GitProperties;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @RequiredArgsConstructor
 public class RequestCorrelationFilter extends OncePerRequestFilter {
 
+    public static final String MDC_ATTRIBUTE_KEY_REQUEST_TRACE_ID = "trace.id";
     private static final String MDC_ATTRIBUTE_KEY_VERSION = "service.version";
     private static final String MDC_ATTRIBUTE_KEY_CLIENT_IP = "client.ip";
-    public static final String MDC_ATTRIBUTE_KEY_REQUEST_TRACE_ID = "trace.id";
     private static final String REQUEST_ATTRIBUTE_NAME_REQUEST_ID = "requestId";
 
     private final String version;

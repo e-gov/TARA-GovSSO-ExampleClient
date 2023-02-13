@@ -1,5 +1,7 @@
 package ee.ria.govsso.client.oauth2;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
@@ -14,8 +16,6 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.thymeleaf.util.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
