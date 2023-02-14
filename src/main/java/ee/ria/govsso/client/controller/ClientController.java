@@ -1,7 +1,8 @@
 package ee.ria.govsso.client.controller;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.JWTParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.thymeleaf.util.StringUtils;
 
+import java.text.ParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,11 +70,13 @@ public class ClientController {
     }
 
     @PostMapping(value = BACKCHANNEL_LOGOUT_MAPPING, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<Void> backChannelLogout(@RequestParam(name = "logout_token") String logoutToken) {
+    public ResponseEntity<Void> backChannelLogout(@RequestParam(name = "logout_token") String logoutToken) throws ParseException {
         HttpHeaders responseHeaders = getHttpHeaders();
-        DecodedJWT decodedLogoutToken = JWT.decode(logoutToken); //TODO remove com.auth0 dependency and use nimbus jwt instead
-        log.info("Received back-channel logout request for sid='{}'", decodedLogoutToken.getClaim("sid"));
-        expireOidcSessions(decodedLogoutToken.getClaim("sid").asString());
+        JWT decodedLogoutToken = JWTParser.parse(logoutToken);
+        JWTClaimsSet jwtClaimsSet = decodedLogoutToken.getJWTClaimsSet();
+        String sid = jwtClaimsSet.getStringClaim("sid");
+        log.info("Received back-channel logout request for sid='{}'", sid);
+        expireOidcSessions(sid);
         return new ResponseEntity<>(responseHeaders, HttpStatus.OK);
     }
 
