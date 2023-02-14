@@ -35,8 +35,8 @@ public class CustomOidcClientInitiatedLogoutSuccessHandler extends SimpleUrlLogo
     @Override
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         String targetUrl = null;
-        if (authentication instanceof OAuth2AuthenticationToken && authentication.getPrincipal() instanceof OidcUser) {
-            String registrationId = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
+        if (authentication instanceof OAuth2AuthenticationToken authToken && authentication.getPrincipal() instanceof OidcUser) {
+            String registrationId = authToken.getAuthorizedClientRegistrationId();
             ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
             URI endSessionEndpoint = endSessionEndpoint(clientRegistration);
             if (endSessionEndpoint != null) {

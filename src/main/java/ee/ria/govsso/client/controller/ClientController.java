@@ -91,7 +91,7 @@ public class ClientController {
         List<DefaultOidcUser> usersBySid =
                 sessionRegistry.getAllPrincipals()
                         .stream()
-                        .filter(principal -> principal instanceof DefaultOidcUser && (StringUtils.equals(((DefaultOidcUser) principal).getClaim("sid"), sid)))
+                        .filter(principal -> principal instanceof DefaultOidcUser defaultOidcUser && StringUtils.equals(defaultOidcUser.getClaim("sid"), sid))
                         .map(DefaultOidcUser.class::cast)
                         .collect(Collectors.toList());
         expireSessions(usersBySid);
