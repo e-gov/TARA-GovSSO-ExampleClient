@@ -51,3 +51,15 @@ are not fully implemented yet❗ Example code and configuration in this reposito
 
 * http://localhost:11443/ - UI
 * http://localhost:11443/actuator - maintenance endpoints
+
+## Security operations
+
+### Logout token
+
+Security operations to verify the logout token are implemented as follows:
+* **Verifying the signature:** handled by `org.springframework.security.oauth2.jwt.JwtDecoder`
+  in `ee.ria.govsso.client.filter.OidcBackchannelLogoutFilter`
+* **Trust of the public signature key endpoint:** SSL configuration is handled by `ee.ria.govsso.client.configuration.SSLConfig`
+* **Verifying the issuer of tokens:** handled by `ee.ria.govsso.client.oauth2.OidcLogoutTokenValidator`
+* **Verifying the addressee of the tokens:** handled by `ee.ria.govsso.client.oauth2.OidcLogoutTokenValidator`
+* **Verifying the validity of the tokens:** handled by `ee.ria.govsso.client.oauth2.OidcLogoutTokenValidator`

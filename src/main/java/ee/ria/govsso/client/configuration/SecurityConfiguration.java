@@ -1,10 +1,13 @@
 package ee.ria.govsso.client.configuration;
 
+import ee.ria.govsso.client.filter.OidcBackchannelLogoutFilter;
 import ee.ria.govsso.client.oauth2.CustomAuthorizationRequestResolver;
 import ee.ria.govsso.client.oauth2.CustomCsrfAuthenticationStrategy;
 import ee.ria.govsso.client.oauth2.CustomOidcClientInitiatedLogoutSuccessHandler;
 import ee.ria.govsso.client.oauth2.CustomRegisterSessionAuthenticationStrategy;
+import ee.ria.govsso.client.oauth2.GovssoLevelOfAssuranceValidator;
 import ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler;
+import ee.ria.govsso.client.oauth2.OidcLogoutTokenValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,8 +19,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
+import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenValidator;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -28,6 +36,7 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
+import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.security.web.session.SimpleRedirectSessionInformationExpiredStrategy;
 
 import javax.servlet.http.HttpServletRequest;
@@ -37,6 +46,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.govsso.client.configuration.CookieConfiguration.COOKIE_NAME_XSRF_TOKEN;
+import static ee.ria.govsso.client.filter.OidcBackchannelLogoutFilter.OAUTH2_BACK_CHANNEL_LOGOUT_REQUEST_MATCHER;
 import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS;
 import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static org.springframework.http.HttpHeaders.ORIGIN;
@@ -66,7 +76,7 @@ public class SecurityConfiguration {
                     .requestCache(httpSessionRequestCache())
                     .and()
                 .authorizeHttpRequests()
-                    .antMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout", "/actuator/**")
+                    .antMatchers("/", "/assets/*", "/scripts/*", OAUTH2_BACK_CHANNEL_LOGOUT_REQUEST_MATCHER, "/actuator/**")
                         .permitAll()
                     .anyRequest()
                         .authenticated()
@@ -77,7 +87,7 @@ public class SecurityConfiguration {
                     CSRF can be disabled if application does not manage its own session and cookies.
                  */
                 .csrf()
-                    .ignoringAntMatchers("/backchannellogout")
+                    .ignoringAntMatchers(OAUTH2_BACK_CHANNEL_LOGOUT_REQUEST_MATCHER)
                     .csrfTokenRepository(csrfTokenRepository())
                     .sessionAuthenticationStrategy(csrfSessionAuthStrategy())
                     .and()
@@ -97,13 +107,13 @@ public class SecurityConfiguration {
                         .and()
                     .addHeaderWriter(corsHeaderWriter())
                         .and()
-                    .oauth2Login()
-                        .authorizationEndpoint()
-                        .authorizationRequestResolver(
-                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry))
-                            .and()
-                        .defaultSuccessUrl("/dashboard")
-                        .failureHandler(getAuthFailureHandler())
+                .oauth2Login()
+                    .authorizationEndpoint()
+                    .authorizationRequestResolver(
+                            new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry))
+                        .and()
+                    .defaultSuccessUrl("/dashboard")
+                    .failureHandler(getAuthFailureHandler())
                     .and()
                 .logout(logoutConfigurer -> {
                     logoutConfigurer.logoutUrl("/oauth/logout");
@@ -156,6 +166,13 @@ public class SecurityConfiguration {
                  */
                 .addFilter(concurrentSessionFilter());
         // @formatter:on
+
+        OidcBackchannelLogoutFilter oidcBackchannelLogoutFilter = OidcBackchannelLogoutFilter.builder()
+                .clientRegistrationRepository(clientRegistrationRepository)
+                .sessionRegistry(sessionRegistry)
+                .logoutTokenDecoderFactory(logoutTokenDecoderFactory())
+                .build();
+        http.addFilterAfter(oidcBackchannelLogoutFilter, SessionManagementFilter.class);
         return http.build();
     }
 
@@ -201,8 +218,24 @@ public class SecurityConfiguration {
         };
     }
 
+    private JwtDecoderFactory<ClientRegistration> logoutTokenDecoderFactory() {
+        OidcIdTokenDecoderFactory idTokenDecoderFactory = new OidcIdTokenDecoderFactory();
+        idTokenDecoderFactory.setJwtValidatorFactory(OidcLogoutTokenValidator::new);
+        return idTokenDecoderFactory;
+    }
+
     @Bean
-    SessionRegistry sessionRegistry() {
+    public JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory() {
+        OidcIdTokenDecoderFactory idTokenDecoderFactory = new OidcIdTokenDecoderFactory();
+        idTokenDecoderFactory.setJwtValidatorFactory(clientRegistration -> new DelegatingOAuth2TokenValidator<>(
+                new OidcIdTokenValidator(clientRegistration),
+                new GovssoLevelOfAssuranceValidator()
+        ));
+        return idTokenDecoderFactory;
+    }
+
+    @Bean
+    public SessionRegistry sessionRegistry() {
         return new SessionRegistryImpl();
     }
 
