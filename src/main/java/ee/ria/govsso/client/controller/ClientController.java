@@ -121,6 +121,12 @@ public class ClientController {
         model.addObject("birthdate", oidcUser.getClaimAsString("birthdate"));
         model.addObject("given_name", oidcUser.getClaimAsString("given_name"));
         model.addObject("family_name", oidcUser.getClaimAsString("family_name"));
+        if (oidcUser.hasClaim("phone_number")) {
+            model.addObject("phone_number", oidcUser.getPhoneNumber());
+        }
+        if (oidcUser.hasClaim("phone_number_verified")) {
+            model.addObject("phone_number_verified", oidcUser.getPhoneNumberVerified());
+        }
         model.addObject("amr", oidcUser.getAuthenticationMethods());
         model.addObject("nonce", oidcUser.getNonce());
         model.addObject("acr", oidcUser.getAuthenticationContextClass());

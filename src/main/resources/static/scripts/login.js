@@ -1,34 +1,40 @@
-$("#localeOptions").change(function () {
+$('#localeOptions').change(function () {
     var optionValue = $(this).val();
-    var url = $('#loginUrl').attr("href")
-    if (optionValue === "none") {
-        removeParameter("locale")
+    if (optionValue === 'none') {
+        removeParameter('locale')
     } else {
-        updateParameter("locale", optionValue)
+        updateParameter('locale', optionValue)
     }
 });
 
-$("#acrOptions").change(function () {
+$('#acrOptions').change(function () {
     var optionValue = $(this).val();
-    var url = $('#loginUrl').attr("href")
-    if (optionValue === "none") {
-        removeParameter("acr")
+    if (optionValue === 'none') {
+        removeParameter('acr')
     } else {
-        updateParameter("acr", optionValue)
+        updateParameter('acr', optionValue)
+    }
+});
+
+$('#requestPhoneScope').change(function () {
+    if($('#requestPhoneScope').is(':checked')){
+        updateParameter('scope', 'phone')
+    } else {
+        removeParameter('scope')
     }
 });
 
 function removeParameter(parameter) {
-    var queryString = $('#loginUrl').prop("search")
+    var queryString = $('#loginUrl').prop('search')
     urlParams = new URLSearchParams(queryString);
     urlParams.delete(parameter)
-    $('#loginUrl').prop("search", urlParams)
+    $('#loginUrl').prop('search', urlParams)
 }
 
 function updateParameter(parameter, value) {
-    var queryString = $('#loginUrl').prop("search")
+    var queryString = $('#loginUrl').prop('search')
     urlParams = new URLSearchParams(queryString);
     urlParams.set(parameter, value)
-    $('#loginUrl').prop("search", urlParams)
+    $('#loginUrl').prop('search', urlParams)
 }
 

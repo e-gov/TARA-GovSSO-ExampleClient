@@ -16,9 +16,11 @@ import org.thymeleaf.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
 import static org.springframework.web.servlet.i18n.SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME;
@@ -56,6 +58,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
         String locale = httpServletRequest.getParameter("locale");
         String acr = httpServletRequest.getParameter("acr");
+        String scope = httpServletRequest.getParameter("scope");
 
         /*
             OAuth2AuthorizationRequestRedirectFilter will create new session right after resolving
@@ -86,7 +89,17 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
 
         return OAuth2AuthorizationRequest.from(authorizationRequest)
                 .additionalParameters(additionalParameters)
+                .scopes(createScopesSet(scope))
                 .build();
+    }
+
+    private Set<String> createScopesSet(String scope) {
+        Set<String> scopes = new HashSet<>();
+        scopes.add("openid");
+        if (scope != null) {
+            scopes.add(scope);
+        }
+        return scopes;
     }
 
     private boolean isUpdateRequest(HttpServletRequest httpServletRequest) {

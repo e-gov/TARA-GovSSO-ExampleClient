@@ -1,6 +1,6 @@
 function updateGovSsoSession() {
     (async () => {
-        await fetch("/oauth2/authorization/govsso?prompt=none", {
+        await fetch('/oauth2/authorization/govsso?prompt=none', {
             method: 'GET',
             // Makes sure cross-site requests (redirects to GovSSO) are made with cookies, authorization headers
             // and TLS client certificates. GovSSO needs only cookies.

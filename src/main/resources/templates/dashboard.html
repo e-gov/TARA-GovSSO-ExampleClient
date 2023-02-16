@@ -107,6 +107,14 @@
                         <td>family_name</td>
                         <td th:text="${family_name}"></td>
                     </tr>
+                    <tr th:if="${#ctx.containsVariable('phone_number')}">
+                        <td>phone_number</td>
+                        <td th:text="${phone_number}"></td>
+                    </tr>
+                    <tr th:if="${#ctx.containsVariable('phone_number_verified')}">
+                        <td>phone_number_verified</td>
+                        <td th:text="${phone_number_verified}"></td>
+                    </tr>
                     <tr>
                         <td>amr</td>
                         <td th:text="${amr}"></td>
