@@ -1,12 +1,13 @@
 package ee.ria.govsso.client.configuration;
 
+import ee.ria.govsso.client.configuration.govsso.GovssoIdTokenDecoderFactory;
 import ee.ria.govsso.client.configuration.govsso.GovssoLogoutTokenDecoderFactory;
 import ee.ria.govsso.client.configuration.govsso.GovssoProperties;
-import ee.ria.govsso.client.filter.OidcBackchannelLogoutFilter;
+import ee.ria.govsso.client.filter.OidcBackChannelLogoutFilter;
+import ee.ria.govsso.client.filter.OidcRefreshTokenFilter;
+import ee.ria.govsso.client.filter.OidcSessionExpirationFilter;
 import ee.ria.govsso.client.oauth2.CustomAuthorizationRequestResolver;
-import ee.ria.govsso.client.oauth2.CustomCsrfAuthenticationStrategy;
 import ee.ria.govsso.client.oauth2.CustomOidcClientInitiatedLogoutSuccessHandler;
-import ee.ria.govsso.client.oauth2.CustomRegisterSessionAuthenticationStrategy;
 import ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,31 +19,34 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
 import org.springframework.security.web.session.SessionManagementFilter;
-import org.springframework.security.web.session.SimpleRedirectSessionInformationExpiredStrategy;
 import org.springframework.web.client.RestOperations;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.govsso.client.configuration.CookieConfiguration.COOKIE_NAME_XSRF_TOKEN;
-import static ee.ria.govsso.client.filter.OidcBackchannelLogoutFilter.OAUTH2_BACK_CHANNEL_LOGOUT_REQUEST_MATCHER;
 import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS;
 import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static org.springframework.http.HttpHeaders.ORIGIN;
@@ -57,21 +61,27 @@ public class SecurityConfiguration {
             Arrays.asList("/login/oauth2/code/govsso", "/dashboard");
 
     private final ClientRegistrationRepository clientRegistrationRepository;
+    private final OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
     @Bean
     public SecurityFilterChain filterChain(
             HttpSecurity http,
             GovssoProperties govssoProperties,
-            @Qualifier("govssoRestTemplate") RestOperations govssoRestOperations) throws Exception {
-        SessionRegistry sessionRegistry = sessionRegistry();
-
+            @Qualifier("govssoRestTemplate") RestOperations govssoRestOperations,
+            SessionRegistry sessionRegistry,
+            GovssoIdTokenDecoderFactory idTokenDecoderFactory,
+            OAuth2UserService<OidcUserRequest, OidcUser> userService,
+            Clock clock) throws Exception {
         // @formatter:off
         http
                 .requestCache()
                     .requestCache(httpSessionRequestCache())
                     .and()
                 .authorizeHttpRequests()
-                    .antMatchers("/", "/assets/*", "/scripts/*", OAUTH2_BACK_CHANNEL_LOGOUT_REQUEST_MATCHER, "/actuator/**")
+                    .antMatchers(
+                            "/", "/assets/*", "/scripts/*", "/actuator/**")
+                        .permitAll()
+                    .requestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
                         .permitAll()
                     .anyRequest()
                         .authenticated()
@@ -82,9 +92,8 @@ public class SecurityConfiguration {
                     CSRF can be disabled if application does not manage its own session and cookies.
                  */
                 .csrf()
-                    .ignoringAntMatchers(OAUTH2_BACK_CHANNEL_LOGOUT_REQUEST_MATCHER)
+                    .ignoringRequestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
                     .csrfTokenRepository(csrfTokenRepository())
-                    .sessionAuthenticationStrategy(csrfSessionAuthStrategy())
                     .and()
                 .headers()
                     .xssProtection().disable()
@@ -98,14 +107,17 @@ public class SecurityConfiguration {
                         .reportOnly()
                         .and()
                     .httpStrictTransportSecurity()
-                    .maxAgeInSeconds(186 * 24 * 60 * 60)
+                    .maxAgeInSeconds(Duration.ofDays(186).toSeconds())
                         .and()
                     .addHeaderWriter(corsHeaderWriter())
                         .and()
                 .oauth2Login()
+                    .userInfoEndpoint()
+                        .oidcUserService(userService)
+                        .and()
                     .authorizationEndpoint()
                         .authorizationRequestResolver(
-                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry))
+                                new CustomAuthorizationRequestResolver(clientRegistrationRepository))
                         .and()
                     .tokenEndpoint()
                         .accessTokenResponseClient(createAccessTokenResponseClient(govssoRestOperations))
@@ -125,53 +137,35 @@ public class SecurityConfiguration {
                 })
                 .sessionManagement()
                      /*
-                        Using custom authentication strategy to prevent creation of new application session during
-                        each GovSSO session update.
-                        Can be removed if stateless session policy is used.
-
-                        ´.maximumSessions(1)´ should NOT be configured here, because it creates separate default
-                        RegisterSessionAuthenticationStrategy that cannot be overridden.
-                        If you want to configure maximum sessions then CompositeSessionAuthenticationStrategy containing
-                        RegisterSessionAuthenticationStrategy and CustomRegisterSessionAuthenticationStrategy
-                        must be passed.
-                    */
-                    /* TODO:
-                        Filter out onAuthentication call before they reach session authentication strategies.
-                        Initial call is made in https://github.com/spring-projects/spring-security/blob/main/web/src/main/java/org/springframework/security/web/authentication/AbstractAuthenticationProcessingFilter.java#L228
-                        a. If manage to override OAuth2LoginAuthenticationFilter, then its method attemptAuthentication
-                        could return null in case of GovSSO session update.
-                        But since given filter is not injectable as bean and registered automatically, it cannot be
-                        overridden easily.
-                        b. Also custom CompositeSessionAuthenticationStrategy can do the general filtering but unfortunately
-                        implementation of it is not injectable as bean either. Every registered session authentication
-                        strategy is always wrapped with it: https://github.com/spring-projects/spring-security/blob/81a930204568cd1d8a68ddc4da3a3c1bf0f66a2c/config/src/main/java/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.java#L507
-                     */
-                    .sessionAuthenticationStrategy(new CustomRegisterSessionAuthenticationStrategy(sessionRegistry))
-                    .and()
-                /* This example does not use Spring Session, thus user session storage is managed by the servlet
-                 * container. Because there is no good way to query all the active sessions from the servlet container,
-                 * we can't just delete all the relevant sessions when handling a back-channel logout request. Luckily
-                 * for us, Spring Security provides a way to limit the number of concurrent sessions a single user can
-                 * have, which just happens to have similar issues. This means we can use existing code meant to limit
-                 * the number of concurrent sessions per user to make back-channel logout work.
-                 *
-                 * Back-channel logout expires relevant sessions from SessionRegistry but SessionRegistry is not used
-                 * to read session data when handling a request. ConcurrentSessionFilter checks if the session at hand
-                 * has been marked expired and performs logout if that is the case. Thus, ConcurrentSessionFilter is
-                 * required to make back-channel logout work.
-                 *
-                 * TODO (GSSO-545): See if we could use `.sessionManagement().maximumSessions(-1)` instead of
-                 *                  configuring `ConcurrentSessionFilter` manually
-                 */
-                .addFilter(concurrentSessionFilter());
+                      * `.maximumSessions(...)` should always be configured as that makes sure a
+                      * `ConcurrentSessionFilter` is created, which is required for our back-channel logout
+                      * implementation to work. Without `ConcurrentSessionFilter`, expiring sessions from
+                      * `SessionRegistry` would have no effect.
+                      */
+                    .maximumSessions(-1)
+                    .expiredUrl("/?error=expired_session");
         // @formatter:on
 
-        OidcBackchannelLogoutFilter oidcBackchannelLogoutFilter = OidcBackchannelLogoutFilter.builder()
+        OidcBackChannelLogoutFilter oidcBackchannelLogoutFilter = OidcBackChannelLogoutFilter.builder()
                 .clientRegistrationRepository(clientRegistrationRepository)
                 .sessionRegistry(sessionRegistry)
                 .logoutTokenDecoderFactory(new GovssoLogoutTokenDecoderFactory(govssoRestOperations))
                 .build();
         http.addFilterAfter(oidcBackchannelLogoutFilter, SessionManagementFilter.class);
+
+        OidcRefreshTokenFilter oidcRefreshTokenFilter = OidcRefreshTokenFilter.builder()
+                .oAuth2AuthorizedClientService(oAuth2AuthorizedClientService)
+                .restOperations(govssoRestOperations)
+                .idTokenDecoderFactory(idTokenDecoderFactory)
+                .userService(userService)
+                .build();
+        http.addFilterBefore(oidcRefreshTokenFilter, SessionManagementFilter.class);
+
+        OidcSessionExpirationFilter oidcSessionExpirationFilter = OidcSessionExpirationFilter.builder()
+                .clock(clock)
+                .sessionRegistry(sessionRegistry)
+                .build();
+        http.addFilterBefore(oidcSessionExpirationFilter, ConcurrentSessionFilter.class);
         return http.build();
     }
 
@@ -182,21 +176,11 @@ public class SecurityConfiguration {
         return accessTokenResponseClient;
     }
 
-    private ConcurrentSessionFilter concurrentSessionFilter() {
-        return new ConcurrentSessionFilter(
-                sessionRegistry(),
-                new SimpleRedirectSessionInformationExpiredStrategy("/?error=expired_session"));
-    }
-
     private HttpSessionRequestCache httpSessionRequestCache() {
         HttpSessionRequestCache httpSessionRequestCache = new HttpSessionRequestCache();
         // Disables session creation if session does not exist and any request returns 401 unauthorized error.
         httpSessionRequestCache.setCreateSessionAllowed(false);
         return httpSessionRequestCache;
-    }
-
-    private SessionAuthenticationStrategy csrfSessionAuthStrategy() {
-        return new CustomCsrfAuthenticationStrategy(csrfTokenRepository());
     }
 
     private CsrfTokenRepository csrfTokenRepository() {
@@ -222,6 +206,11 @@ public class SecurityConfiguration {
                 }
             }
         };
+    }
+
+    @Bean
+    public Clock clock() {
+        return Clock.systemDefaultZone();
     }
 
     @Bean

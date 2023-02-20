@@ -27,7 +27,7 @@ import static ee.ria.govsso.client.oauth2.OidcLogoutTokenValidator.SESSION_ID_CL
 import static org.springframework.http.HttpMethod.POST;
 
 /**
- * An {@link OidcBackchannelLogoutFilter} responsible for initiating back-channel logout.
+ * An {@link OidcBackChannelLogoutFilter} responsible for initiating back-channel logout.
  *
  * @implNote This implementation should be replaced by
  * <a target="_blank" href="https://github.com/spring-projects/spring-security/issues/7845">Support OpenID Connect Back-Channel Logout</a>.
@@ -39,30 +39,33 @@ import static org.springframework.http.HttpMethod.POST;
 @Slf4j
 @Builder
 @RequiredArgsConstructor
-public class OidcBackchannelLogoutFilter extends OncePerRequestFilter {
-    public static final String OAUTH2_BACK_CHANNEL_LOGOUT_REQUEST_MATCHER = "/oauth2/back-channel-logout/*";
+public class OidcBackChannelLogoutFilter extends OncePerRequestFilter {
+
+    public static final RequestMatcher REQUEST_MATCHER =
+            new AntPathRequestMatcher("/oauth2/back-channel-logout/{registrationId}", POST.name());
+
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final JwtDecoderFactory<ClientRegistration> logoutTokenDecoderFactory;
     private final SessionRegistry sessionRegistry;
-    private final RequestMatcher requestMatcher =
-            new AntPathRequestMatcher("/oauth2/back-channel-logout/{registrationId}", POST.name());
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        RequestMatcher.MatchResult result = requestMatcher.matcher(request);
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        RequestMatcher.MatchResult result = REQUEST_MATCHER.matcher(request);
         if (!result.isMatch()) {
             filterChain.doFilter(request, response);
             return;
         }
         try {
-            handleBackChannelLogout(request, response, filterChain, result);
+            handleBackChannelLogout(request, response, result);
         } catch (Exception e) {
             log.error("Failed to process back-channel logout request", e);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
-    private void handleBackChannelLogout(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain, RequestMatcher.MatchResult result) throws IOException, ServletException {
+    private void handleBackChannelLogout(
+            HttpServletRequest request, HttpServletResponse response, RequestMatcher.MatchResult result) {
         log.trace("Received back-channel logout request");
         String registrationId = result.getVariables().get("registrationId");
         ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
