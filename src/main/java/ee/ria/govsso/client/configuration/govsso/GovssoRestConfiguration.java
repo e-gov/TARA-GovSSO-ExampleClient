@@ -9,7 +9,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
+import org.springframework.security.oauth2.core.http.converter.OAuth2ErrorHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.SSLContext;
@@ -18,6 +20,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.List;
 import java.util.stream.Stream;
 
 @Configuration
@@ -27,11 +30,7 @@ public class GovssoRestConfiguration {
     RestTemplate govssoRestTemplate(GovssoProperties properties)
             throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException,
             KeyManagementException {
-        SSLContext sslContext = new SSLContextBuilder()
-                .loadTrustMaterial(
-                        properties.trustStore().getURL(),
-                        properties.trustStorePassword().toCharArray())
-                .build();
+        SSLContext sslContext = createSslContext(properties);
         SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
         @SuppressWarnings("resource")
         HttpClient httpClient = HttpClients.custom()
@@ -40,13 +39,31 @@ public class GovssoRestConfiguration {
         RestTemplate restTemplate = new RestTemplateBuilder()
                 .requestFactory(() -> new HttpComponentsClientHttpRequestFactory(httpClient))
                 .build();
-        restTemplate.setMessageConverters(
-                Stream.concat(
-                        Stream.of(new FormHttpMessageConverter(), new OAuth2AccessTokenResponseHttpMessageConverter()),
-                        restTemplate.getMessageConverters().stream()
-                ).toList()
+        List<HttpMessageConverter<?>> additionalMessageConverters = List.of(
+                new FormHttpMessageConverter(),
+                new OAuth2ErrorHttpMessageConverter(),
+                new OAuth2AccessTokenResponseHttpMessageConverter()
         );
+        addMessageConverters(restTemplate, additionalMessageConverters);
         return restTemplate;
+    }
+
+    private static SSLContext createSslContext(GovssoProperties properties)
+            throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, IOException {
+        return new SSLContextBuilder()
+                .loadTrustMaterial(
+                        properties.trustStore().getURL(),
+                        properties.trustStorePassword().toCharArray())
+                .build();
+    }
+
+    private static void addMessageConverters(
+            RestTemplate restTemplate, List<HttpMessageConverter<?>> additionalMessageConverters) {
+        List<HttpMessageConverter<?>> httpMessageConverters = Stream.concat(
+                additionalMessageConverters.stream(),
+                restTemplate.getMessageConverters().stream()
+        ).toList();
+        restTemplate.setMessageConverters(httpMessageConverters);
     }
 
 }
