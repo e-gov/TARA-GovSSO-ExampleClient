@@ -46,5 +46,5 @@ server:
     trust-store-password: changeit
 
 govsso:
-  public-url: https://clienta.localhost:11443
+  post-logout-redirect-uri: https://clienta.localhost:11443/?show-post-logout-message
   logo: client-a.svg

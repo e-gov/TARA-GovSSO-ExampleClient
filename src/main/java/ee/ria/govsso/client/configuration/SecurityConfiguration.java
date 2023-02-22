@@ -53,8 +53,8 @@ public class SecurityConfiguration {
 
     private final ClientRegistrationRepository clientRegistrationRepository;
 
-    @Value("${govsso.public-url}")
-    private String publicUrl;
+    @Value("${govsso.post-logout-redirect-uri}")
+    private String postLogoutRedirectUri;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -111,7 +111,7 @@ public class SecurityConfiguration {
                         Using custom handlers to pass ui_locales parameter to GovSSO logout flow.
                     */
                     logoutConfigurer
-                            .logoutSuccessHandler(new CustomOidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository, publicUrl))
+                            .logoutSuccessHandler(new CustomOidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository, postLogoutRedirectUri))
                             .getLogoutHandlers().add(0, new LocalePassingLogoutHandler());
                 })
                 .sessionManagement()

@@ -31,3 +31,4 @@ function updateParameter(parameter, value) {
     urlParams.set(parameter, value)
     $('#loginUrl').prop("search", urlParams)
 }
+
