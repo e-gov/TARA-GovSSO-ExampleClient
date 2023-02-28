@@ -1,9 +1,10 @@
 package ee.ria.govsso.client.configuration;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+
+import javax.annotation.PostConstruct;
 
 @Configuration
 @RequiredArgsConstructor

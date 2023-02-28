@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.2</version>
+        <version>2.7.9</version>
         <relativePath/><!-- Lookup parent from repository. -->
     </parent>
 
@@ -121,6 +121,9 @@
             <plugin>
                 <groupId>io.github.git-commit-id</groupId>
                 <artifactId>git-commit-id-maven-plugin</artifactId>
+                <!-- TODO GSSO-534: Remove version declaration after upgrading to Spring Boot 3.x,
+                                    because that defaults to git-commit-id-maven-plugin >= 5.0.0 -->
+                <version>5.0.0</version>
             </plugin>
         </plugins>
     </build>

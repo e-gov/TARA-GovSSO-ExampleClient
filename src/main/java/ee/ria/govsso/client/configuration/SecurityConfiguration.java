@@ -5,8 +5,6 @@ import ee.ria.govsso.client.oauth2.CustomCsrfAuthenticationStrategy;
 import ee.ria.govsso.client.oauth2.CustomOidcClientInitiatedLogoutSuccessHandler;
 import ee.ria.govsso.client.oauth2.CustomRegisterSessionAuthenticationStrategy;
 import ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +28,8 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +64,7 @@ public class SecurityConfiguration {
                     .requestCache(httpSessionRequestCache())
                     .and()
                 .authorizeHttpRequests()
-                    .requestMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout", "/actuator/**")
+                    .antMatchers("/", "/assets/*", "/scripts/*", "/backchannellogout", "/actuator/**")
                         .permitAll()
                     .anyRequest()
                         .authenticated()
@@ -75,7 +75,7 @@ public class SecurityConfiguration {
                     CSRF can be disabled if application does not manage its own session and cookies.
                  */
                 .csrf()
-                    .ignoringRequestMatchers("/backchannellogout")
+                    .ignoringAntMatchers("/backchannellogout")
                     .csrfTokenRepository(csrfTokenRepository())
                     .sessionAuthenticationStrategy(csrfSessionAuthStrategy())
                     .and()
