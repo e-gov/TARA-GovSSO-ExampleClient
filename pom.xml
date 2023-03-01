@@ -119,11 +119,13 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>io.github.git-commit-id</groupId>
-                <artifactId>git-commit-id-maven-plugin</artifactId>
-                <!-- TODO GSSO-534: Remove version declaration after upgrading to Spring Boot 3.x,
-                                    because that defaults to git-commit-id-maven-plugin >= 5.0.0 -->
-                <version>5.0.0</version>
+                <!-- TODO GSSO-534: Replace with `io.github.git-commit-id:git-commit-id-maven-plugin`
+                                    after upgrading to Spring Boot 3.x, -->
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <configuration>
+                    <offline>true</offline>
+                </configuration>
             </plugin>
         </plugins>
     </build>
