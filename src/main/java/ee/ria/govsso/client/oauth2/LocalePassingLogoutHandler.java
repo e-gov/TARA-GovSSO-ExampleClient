@@ -25,6 +25,9 @@ public class LocalePassingLogoutHandler implements LogoutHandler {
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         HttpSession session = request.getSession(false);
+        if (session == null) {
+            return;
+        }
         if (session.getAttribute(LOCALE_SESSION_ATTRIBUTE_NAME) instanceof Locale locale) {
             request.setAttribute(UI_LOCALES_PARAMETER, locale.getLanguage());
         }

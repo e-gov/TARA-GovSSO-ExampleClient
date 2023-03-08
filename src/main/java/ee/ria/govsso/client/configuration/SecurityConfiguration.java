@@ -1,31 +1,26 @@
 package ee.ria.govsso.client.configuration;
 
+import ee.ria.govsso.client.configuration.govsso.GovssoLogoutTokenDecoderFactory;
+import ee.ria.govsso.client.configuration.govsso.GovssoProperties;
 import ee.ria.govsso.client.filter.OidcBackchannelLogoutFilter;
 import ee.ria.govsso.client.oauth2.CustomAuthorizationRequestResolver;
 import ee.ria.govsso.client.oauth2.CustomCsrfAuthenticationStrategy;
 import ee.ria.govsso.client.oauth2.CustomOidcClientInitiatedLogoutSuccessHandler;
 import ee.ria.govsso.client.oauth2.CustomRegisterSessionAuthenticationStrategy;
-import ee.ria.govsso.client.oauth2.GovssoLevelOfAssuranceValidator;
 import ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler;
-import ee.ria.govsso.client.oauth2.OidcLogoutTokenValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory;
-import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenValidator;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -38,6 +33,7 @@ import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
 import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.security.web.session.SimpleRedirectSessionInformationExpiredStrategy;
+import org.springframework.web.client.RestOperations;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -51,7 +47,6 @@ import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTI
 import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static org.springframework.http.HttpHeaders.ORIGIN;
 
-@DependsOn("SSLConfig")
 @Slf4j
 @Configuration
 @EnableWebSecurity
@@ -63,11 +58,11 @@ public class SecurityConfiguration {
 
     private final ClientRegistrationRepository clientRegistrationRepository;
 
-    @Value("${govsso.post-logout-redirect-uri}")
-    private String postLogoutRedirectUri;
-
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            GovssoProperties govssoProperties,
+            @Qualifier("govssoRestTemplate") RestOperations govssoRestOperations) throws Exception {
         SessionRegistry sessionRegistry = sessionRegistry();
 
         // @formatter:off
@@ -109,8 +104,11 @@ public class SecurityConfiguration {
                         .and()
                 .oauth2Login()
                     .authorizationEndpoint()
-                    .authorizationRequestResolver(
-                            new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry))
+                        .authorizationRequestResolver(
+                                new CustomAuthorizationRequestResolver(clientRegistrationRepository, sessionRegistry))
+                        .and()
+                    .tokenEndpoint()
+                        .accessTokenResponseClient(createAccessTokenResponseClient(govssoRestOperations))
                         .and()
                     .defaultSuccessUrl("/dashboard")
                     .failureHandler(getAuthFailureHandler())
@@ -121,7 +119,8 @@ public class SecurityConfiguration {
                         Using custom handlers to pass ui_locales parameter to GovSSO logout flow.
                     */
                     logoutConfigurer
-                            .logoutSuccessHandler(new CustomOidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository, postLogoutRedirectUri))
+                            .logoutSuccessHandler(new CustomOidcClientInitiatedLogoutSuccessHandler(
+                                    clientRegistrationRepository, govssoProperties.postLogoutRedirectUri()))
                             .getLogoutHandlers().add(0, new LocalePassingLogoutHandler());
                 })
                 .sessionManagement()
@@ -170,10 +169,17 @@ public class SecurityConfiguration {
         OidcBackchannelLogoutFilter oidcBackchannelLogoutFilter = OidcBackchannelLogoutFilter.builder()
                 .clientRegistrationRepository(clientRegistrationRepository)
                 .sessionRegistry(sessionRegistry)
-                .logoutTokenDecoderFactory(logoutTokenDecoderFactory())
+                .logoutTokenDecoderFactory(new GovssoLogoutTokenDecoderFactory(govssoRestOperations))
                 .build();
         http.addFilterAfter(oidcBackchannelLogoutFilter, SessionManagementFilter.class);
         return http.build();
+    }
+
+    private static DefaultAuthorizationCodeTokenResponseClient createAccessTokenResponseClient(RestOperations govssoRestOperations) {
+        DefaultAuthorizationCodeTokenResponseClient accessTokenResponseClient =
+                new DefaultAuthorizationCodeTokenResponseClient();
+        accessTokenResponseClient.setRestOperations(govssoRestOperations);
+        return accessTokenResponseClient;
     }
 
     private ConcurrentSessionFilter concurrentSessionFilter() {
@@ -216,22 +222,6 @@ public class SecurityConfiguration {
                 }
             }
         };
-    }
-
-    private JwtDecoderFactory<ClientRegistration> logoutTokenDecoderFactory() {
-        OidcIdTokenDecoderFactory idTokenDecoderFactory = new OidcIdTokenDecoderFactory();
-        idTokenDecoderFactory.setJwtValidatorFactory(OidcLogoutTokenValidator::new);
-        return idTokenDecoderFactory;
-    }
-
-    @Bean
-    public JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory() {
-        OidcIdTokenDecoderFactory idTokenDecoderFactory = new OidcIdTokenDecoderFactory();
-        idTokenDecoderFactory.setJwtValidatorFactory(clientRegistration -> new DelegatingOAuth2TokenValidator<>(
-                new OidcIdTokenValidator(clientRegistration),
-                new GovssoLevelOfAssuranceValidator()
-        ));
-        return idTokenDecoderFactory;
     }
 
     @Bean

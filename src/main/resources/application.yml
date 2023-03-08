@@ -21,19 +21,6 @@ spring:
     banner-mode: off
   application:
     name: Client A
-  security:
-    oauth2:
-      client:
-        registration:
-          govsso:
-            client-id: client-a
-            client-secret: secreta
-            authorization-grant-type: authorization_code
-            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
-            scope: openid
-        provider:
-          govsso:
-            issuer-uri: https://gateway.localhost:13443/
 server:
   # Use same port as govsso-session/docker-compose.yml.
   port: 11443
@@ -42,9 +29,17 @@ server:
     key-store-password: changeit
     key-store: classpath:clienta.localhost.keystore.p12
     key-store-type: PKCS12
-    trust-store: classpath:clienta.localhost.truststore.p12
-    trust-store-password: changeit
 
 govsso:
   post-logout-redirect-uri: https://clienta.localhost:11443/?show-post-logout-message
+  client-id: client-a
+  client-secret: secreta
+  authorization-grant-type: authorization_code
+  redirect-uri: 'https://clienta.localhost:11443/login/oauth2/code/govsso'
+  scope: openid
+  issuer-uri: https://gateway.localhost:13443/
+  trust-store: classpath:clienta.localhost.truststore.p12
+  trust-store-password: changeit
+
+example-client:
   logo: client-a.svg

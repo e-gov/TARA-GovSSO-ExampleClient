@@ -18,7 +18,7 @@ public class ClientController {
     public static final String DASHBOARD_MAPPING = "/dashboard";
     @Value("${spring.application.name}")
     private String applicationName;
-    @Value("${govsso.logo}")
+    @Value("${example-client.logo}")
     private String applicationLogo;
 
     @GetMapping(value = LOGIN_VIEW_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
