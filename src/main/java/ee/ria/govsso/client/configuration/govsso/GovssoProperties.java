@@ -12,13 +12,14 @@ import java.util.List;
 @ConstructorBinding
 @ConfigurationProperties("govsso")
 public record GovssoProperties(
-    @NotNull String clientId,
-    @NotNull String clientSecret,
-    @NotNull String authorizationGrantType,
-    @NotNull String redirectUri,
-    @NotNull List<String> scope,
-    @NotNull String issuerUri,
-    @NotNull Resource trustStore,
-    @NotNull String trustStorePassword,
-    @NotNull String postLogoutRedirectUri
-) {}
+        @NotNull String clientId,
+        @NotNull String clientSecret,
+        @NotNull String authorizationGrantType,
+        @NotNull String redirectUri,
+        @NotNull List<String> scope,
+        @NotNull String issuerUri,
+        @NotNull Resource trustStore,
+        @NotNull String trustStorePassword,
+        @NotNull String postLogoutRedirectUri
+) {
+}

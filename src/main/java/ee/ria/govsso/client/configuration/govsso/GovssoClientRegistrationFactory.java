@@ -71,7 +71,7 @@ public class GovssoClientRegistrationFactory {
 
     private static void verifyIssuer(String issuer, OIDCProviderMetadata metadata) {
         String metadataIssuer = metadata.getIssuer().getValue();
-        if(!Objects.equals(issuer, metadataIssuer)) {
+        if (!Objects.equals(issuer, metadataIssuer)) {
             throw new IllegalStateException("The Issuer \"" + metadataIssuer + "\" provided " +
                     "in the configuration metadata did not match the requested issuer \"" + issuer + "\"");
         }
