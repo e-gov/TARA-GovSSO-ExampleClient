@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -122,6 +123,7 @@ public class OidcRefreshTokenFilter extends OncePerRequestFilter {
         String refreshTokenResponse = generateDemoResponse(idToken);
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.displayName());
         PrintWriter writer = response.getWriter();
         writer.write(refreshTokenResponse);
     }

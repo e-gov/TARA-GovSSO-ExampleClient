@@ -6,7 +6,8 @@ function updateGovSsoSession() {
             method: 'POST',
             headers: {
                 [csrfHeader]: csrfToken,
-            }
+            },
+            redirect: "manual"
         }).then(async function (response) {
             if (response.ok) {
                 const idToken = await response.json();
