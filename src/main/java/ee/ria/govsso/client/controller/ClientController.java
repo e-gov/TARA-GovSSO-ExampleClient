@@ -1,5 +1,6 @@
 package ee.ria.govsso.client.controller;
 
+import ee.ria.govsso.client.oauth2.SessionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -69,5 +70,6 @@ public class ClientController {
         model.addObject("acr", oidcUser.getAuthenticationContextClass());
         model.addObject("at_hash", oidcUser.getAccessTokenHash());
         model.addObject("sid", oidcUser.getIdToken().getClaim("sid"));
+        model.addObject("time_until_session_expiration_in_seconds", SessionUtil.getTimeUntilAuthenticationExpirationInSeconds());
     }
 }

@@ -48,8 +48,10 @@
         <main class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4" role="main">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
                 <h1 class="h2">Dashboard</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <button class="btn btn-sm btn-outline-secondary" onclick="updateGovSsoSession();">
+                <div class="btn-toolbar d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-2 mb-md-0">
+                    <div th:id="updateToggle"><input type="checkbox" id="autoUpdate" checked> Session update in: </div>
+                    <div class="mx-2" th:id="updateTimer" th:text="${time_until_session_expiration_in_seconds - 120}"></div>
+                    <button th:id="updateButton" class="btn btn-sm btn-outline-secondary" onclick="updateGovSsoSession();">
                         Update session
                     </button>
                 </div>

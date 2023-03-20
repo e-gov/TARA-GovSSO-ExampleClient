@@ -1,6 +1,7 @@
 package ee.ria.govsso.client.filter;
 
 import com.nimbusds.jose.util.JSONObjectUtils;
+import ee.ria.govsso.client.oauth2.SessionUtil;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -168,6 +169,7 @@ public class OidcRefreshTokenFilter extends OncePerRequestFilter {
         response.put("acr", idToken.getClaimAsString("acr"));
         response.put("at_hash", idToken.getClaimAsString("at_hash"));
         response.put("sid", idToken.getClaimAsString("sid"));
+        response.put("time_until_session_expiration_in_seconds", SessionUtil.getTimeUntilAuthenticationExpirationInSeconds());
         return JSONObjectUtils.toJSONString(response);
     }
 
