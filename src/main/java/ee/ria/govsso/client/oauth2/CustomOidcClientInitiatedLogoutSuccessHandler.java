@@ -1,5 +1,6 @@
 package ee.ria.govsso.client.oauth2;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -80,8 +81,13 @@ public class CustomOidcClientInitiatedLogoutSuccessHandler extends SimpleUrlLogo
 
     private String endpointUri(HttpServletRequest request, URI endSessionEndpoint, String idToken, String postLogoutRedirectUri) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUri(endSessionEndpoint);
+
+        String locale = (String) request.getAttribute(UI_LOCALES_PARAMETER);
+
         builder.queryParam("id_token_hint", idToken);
-        builder.queryParam(UI_LOCALES_PARAMETER, request.getAttribute(UI_LOCALES_PARAMETER));
+        if (StringUtils.isNotEmpty(locale)) {
+            builder.queryParam(UI_LOCALES_PARAMETER, locale);
+        }
         if (postLogoutRedirectUri != null) {
             builder.queryParam("post_logout_redirect_uri", postLogoutRedirectUri);
         }
