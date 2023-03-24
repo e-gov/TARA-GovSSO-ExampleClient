@@ -1,19 +1,19 @@
 package ee.ria.govsso.client.filter;
 
 import com.nimbusds.jose.util.JSONObjectUtils;
+import ee.ria.govsso.client.configuration.govsso.GovssoAuthenticationToken;
+import ee.ria.govsso.client.configuration.govsso.GovssoRefreshTokenTokenResponseClient;
 import ee.ria.govsso.client.oauth2.SessionUtil;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.client.endpoint.DefaultRefreshTokenTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.OAuth2RefreshTokenGrantRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -21,7 +21,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.web.client.RestOperations;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -36,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.requireNonNull;
 import static org.springframework.http.HttpMethod.POST;
 
 /**
@@ -50,21 +48,23 @@ public class OidcRefreshTokenFilter extends OncePerRequestFilter {
             new AntPathRequestMatcher("/oauth2/refresh/{registrationId}", POST.name());
 
     private final OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
-    private final DefaultRefreshTokenTokenResponseClient refreshTokenResponseClient;
+    private final GovssoRefreshTokenTokenResponseClient refreshTokenResponseClient;
     private final JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory;
     private final OAuth2UserService<OidcUserRequest, OidcUser> userService;
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Builder
     public OidcRefreshTokenFilter(
             OAuth2AuthorizedClientService oAuth2AuthorizedClientService,
-            @Qualifier("govssoRestTemplate") RestOperations restOperations,
+            GovssoRefreshTokenTokenResponseClient refreshTokenResponseClient,
             JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory,
-            OAuth2UserService<OidcUserRequest, OidcUser> userService) {
+            OAuth2UserService<OidcUserRequest, OidcUser> userService,
+            ClientRegistrationRepository clientRegistrationRepository) {
         this.oAuth2AuthorizedClientService = oAuth2AuthorizedClientService;
-        this.refreshTokenResponseClient = new DefaultRefreshTokenTokenResponseClient();
-        this.refreshTokenResponseClient.setRestOperations(restOperations);
+        this.refreshTokenResponseClient = refreshTokenResponseClient;
         this.idTokenDecoderFactory = idTokenDecoderFactory;
         this.userService = userService;
+        this.clientRegistrationRepository = clientRegistrationRepository;
     }
 
     @Override
@@ -84,8 +84,8 @@ public class OidcRefreshTokenFilter extends OncePerRequestFilter {
     }
 
     private void handleRefresh(HttpServletResponse response, String registrationId) throws IOException {
-        OAuth2AuthenticationToken previousAuthenticationToken =
-                (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        GovssoAuthenticationToken previousAuthenticationToken =
+                (GovssoAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         String tokenRegistrationId = previousAuthenticationToken.getAuthorizedClientRegistrationId();
         if (!Objects.equals(registrationId, tokenRegistrationId)) {
             throw new RuntimeException(
@@ -93,11 +93,10 @@ public class OidcRefreshTokenFilter extends OncePerRequestFilter {
                             "authorized client registration ID: \"" + tokenRegistrationId + "\", " +
                             "provided client registration ID: \"" + registrationId + "\"");
         }
-        OAuth2AuthorizedClient client = oAuth2AuthorizedClientService.loadAuthorizedClient(
-                tokenRegistrationId, previousAuthenticationToken.getName());
-        ClientRegistration clientRegistration = client.getClientRegistration();
-        OAuth2AccessTokenResponse tokenResponse = performRefreshTokenGrantRequest(client);
-        OAuth2AuthenticationToken newAuthToken = createNewAuthentication(clientRegistration, tokenResponse);
+        ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
+        OAuth2AccessTokenResponse tokenResponse = performRefreshTokenGrantRequest(
+                clientRegistration, previousAuthenticationToken.getRefreshToken());
+        GovssoAuthenticationToken newAuthToken = createNewAuthentication(clientRegistration, tokenResponse);
         SecurityContextHolder.getContext().setAuthentication(newAuthToken);
         saveAuthorizedClient(newAuthToken, clientRegistration, tokenResponse);
 
@@ -105,7 +104,7 @@ public class OidcRefreshTokenFilter extends OncePerRequestFilter {
         log.info("Refresh token request successful");
     }
 
-    private OAuth2AuthenticationToken createNewAuthentication(
+    private GovssoAuthenticationToken createNewAuthentication(
             ClientRegistration clientRegistration, OAuth2AccessTokenResponse tokenResponse) {
         String idToken = (String) tokenResponse.getAdditionalParameters().get("id_token");
         Jwt validatedIdToken = idTokenDecoderFactory.createDecoder(clientRegistration).decode(idToken);
@@ -116,8 +115,11 @@ public class OidcRefreshTokenFilter extends OncePerRequestFilter {
                 clientRegistration, tokenResponse.getAccessToken(), oidcIdToken,
                 tokenResponse.getAdditionalParameters());
         OidcUser oidcUser = this.userService.loadUser(oidcUserRequest);
-        return new OAuth2AuthenticationToken(
-                oidcUser, oidcUser.getAuthorities(), oidcUserRequest.getClientRegistration().getRegistrationId());
+        return new GovssoAuthenticationToken(
+                oidcUser,
+                oidcUser.getAuthorities(),
+                oidcUserRequest.getClientRegistration().getRegistrationId(),
+                tokenResponse.getRefreshToken());
     }
 
     private void writeResponse(HttpServletResponse response, OidcIdToken idToken) throws IOException {
@@ -129,16 +131,19 @@ public class OidcRefreshTokenFilter extends OncePerRequestFilter {
         writer.write(refreshTokenResponse);
     }
 
-    private OAuth2AccessTokenResponse performRefreshTokenGrantRequest(OAuth2AuthorizedClient client) {
-        ClientRegistration clientRegistration = client.getClientRegistration();
-        OAuth2RefreshTokenGrantRequest tokenRequest = new OAuth2RefreshTokenGrantRequest(
+    private OAuth2AccessTokenResponse performRefreshTokenGrantRequest(
+            ClientRegistration clientRegistration,
+            OAuth2RefreshToken refreshToken) {
+        GovssoRefreshTokenTokenResponseClient.Request tokenRequest = new GovssoRefreshTokenTokenResponseClient.Request(
                 clientRegistration,
-                client.getAccessToken(),
-                requireNonNull(client.getRefreshToken()));
+                refreshToken);
         return refreshTokenResponseClient.getTokenResponse(tokenRequest);
     }
 
-    private void saveAuthorizedClient(OAuth2AuthenticationToken authToken, ClientRegistration clientRegistration,
+    /* Since we are using `NoopAuthorizedClientService`, this method does not actually do anything, but is still kept
+     * for reference.
+     */
+    private void saveAuthorizedClient(GovssoAuthenticationToken authToken, ClientRegistration clientRegistration,
                                       OAuth2AccessTokenResponse tokenResponse) {
         OAuth2AuthorizedClient updatedClient = new OAuth2AuthorizedClient(
                 clientRegistration, authToken.getName(), tokenResponse.getAccessToken(),

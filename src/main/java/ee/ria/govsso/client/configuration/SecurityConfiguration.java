@@ -1,8 +1,10 @@
 package ee.ria.govsso.client.configuration;
 
+import ee.ria.govsso.client.configuration.govsso.GovssoAuthenticationToken;
 import ee.ria.govsso.client.configuration.govsso.GovssoIdTokenDecoderFactory;
 import ee.ria.govsso.client.configuration.govsso.GovssoLogoutTokenDecoderFactory;
 import ee.ria.govsso.client.configuration.govsso.GovssoProperties;
+import ee.ria.govsso.client.configuration.govsso.GovssoRefreshTokenTokenResponseClient;
 import ee.ria.govsso.client.filter.OidcBackChannelLogoutFilter;
 import ee.ria.govsso.client.filter.OidcRefreshTokenFilter;
 import ee.ria.govsso.client.filter.OidcSessionExpirationFilter;
@@ -14,16 +16,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.DefaultRedirectStrategy;
@@ -68,6 +73,7 @@ public class SecurityConfiguration {
             HttpSecurity http,
             GovssoProperties govssoProperties,
             @Qualifier("govssoRestTemplate") RestOperations govssoRestOperations,
+            GovssoRefreshTokenTokenResponseClient refreshTokenTokenResponseClient,
             SessionRegistry sessionRegistry,
             GovssoIdTokenDecoderFactory idTokenDecoderFactory,
             OAuth2UserService<OidcUserRequest, OidcUser> userService,
@@ -112,6 +118,7 @@ public class SecurityConfiguration {
                     .addHeaderWriter(corsHeaderWriter())
                         .and()
                 .oauth2Login()
+                    .withObjectPostProcessor(new SetAuthenticationResultConverter())
                     .userInfoEndpoint()
                         .oidcUserService(userService)
                         .and()
@@ -155,9 +162,10 @@ public class SecurityConfiguration {
 
         OidcRefreshTokenFilter oidcRefreshTokenFilter = OidcRefreshTokenFilter.builder()
                 .oAuth2AuthorizedClientService(oAuth2AuthorizedClientService)
-                .restOperations(govssoRestOperations)
+                .refreshTokenResponseClient(refreshTokenTokenResponseClient)
                 .idTokenDecoderFactory(idTokenDecoderFactory)
                 .userService(userService)
+                .clientRegistrationRepository(clientRegistrationRepository)
                 .build();
         http.addFilterBefore(oidcRefreshTokenFilter, SessionManagementFilter.class);
 
@@ -236,4 +244,30 @@ public class SecurityConfiguration {
             }
         };
     }
+
+    /* This is required, so we would have access to GovSSO refresh token without using `OAuth2AuthorizedClientService`
+     * which has some issues - see `NoopAuthorizedClientService`.
+     */
+    private static class SetAuthenticationResultConverter
+            implements ObjectPostProcessor<OAuth2LoginAuthenticationFilter> {
+
+        @Override
+        public <O extends OAuth2LoginAuthenticationFilter> O postProcess(O filter) {
+            filter.setAuthenticationResultConverter(this::createGovssoAuthenticationToken);
+            return filter;
+        }
+
+        private GovssoAuthenticationToken createGovssoAuthenticationToken(
+                OAuth2LoginAuthenticationToken authenticationResult
+        ) {
+            return new GovssoAuthenticationToken(
+                    authenticationResult.getPrincipal(),
+                    authenticationResult.getAuthorities(),
+                    authenticationResult.getClientRegistration().getRegistrationId(),
+                    authenticationResult.getRefreshToken()
+            );
+        }
+
+    }
+
 }
