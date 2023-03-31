@@ -1,26 +1,35 @@
-const channel = new BroadcastChannel('foobar');
-
 const GOVSSO_SESSION_UPDATE_BUFFER_SECONDS = 2 * 60;
 const RETRY_BUFFER_SECONDS = 10;
 
 var sessionLengthInSeconds;
 var sessionTimer;
 var timeout;
-var anotherPageOpen = false;
 var endTime;
 
 $(window).on('load', function() {
-    if (!anotherPageOpen) {
-        sessionLengthInSeconds = +$('#updateTimer').text();
-        endTime = getCurrentTimeStampInSeconds() + sessionLengthInSeconds;
-        timeout = setTimeout(autoUpdateGovSsoSession, sessionLengthInSeconds * 1000);
-        sessionTimer = setInterval(incrementSeconds, 1000);
+    var isChecked = localStorage.getItem('isChecked');
+
+    if (isChecked == 'false') {
+        $('#autoUpdate').prop('checked', false);
     } else {
-        $('#updateTimer').hide();
-        $('#updateToggle').hide();
+        $('#autoUpdate').prop('checked', true);
     }
+
+    $('#autoUpdate').change(function () {
+        if($('#autoUpdate').is(':checked')){
+            localStorage.setItem('isChecked', 'true');
+        } else {
+            localStorage.setItem('isChecked', 'false');
+        }
+    });
+
+    sessionLengthInSeconds = +$('#updateTimer').text();
+    endTime = getCurrentTimeStampInSeconds() + sessionLengthInSeconds;
+    timeout = setTimeout(autoUpdateGovSsoSession, sessionLengthInSeconds * 1000);
+    sessionTimer = setInterval(incrementSeconds, 1000);
 });
 
+//TODO find a way to use leader election for browser tabs to prevent automatic session updates on multiple tabs
 function updateGovSsoSession() {
     $('#updateButton').prop('disabled',true);
     const csrfToken = $('meta[name="_csrf"]').attr('content');
@@ -53,14 +62,12 @@ function updateGovSsoSession() {
                 $('#sid').text(idToken.sid);
                 $('#error').hide();
 
-                if (!anotherPageOpen) {
-                    sessionLengthInSeconds = idToken.time_until_session_expiration_in_seconds;
-                    clearInterval(sessionTimer);
-                    endTime = getCurrentTimeStampInSeconds() + sessionLengthInSeconds - GOVSSO_SESSION_UPDATE_BUFFER_SECONDS;
-                    sessionTimer = setInterval(incrementSeconds, 1000);
-                    clearTimeout(timeout);
-                    timeout = setTimeout(autoUpdateGovSsoSession, (sessionLengthInSeconds - GOVSSO_SESSION_UPDATE_BUFFER_SECONDS) * 1000);
-                }
+                sessionLengthInSeconds = idToken.time_until_session_expiration_in_seconds;
+                clearInterval(sessionTimer);
+                endTime = getCurrentTimeStampInSeconds() + sessionLengthInSeconds - GOVSSO_SESSION_UPDATE_BUFFER_SECONDS;
+                sessionTimer = setInterval(incrementSeconds, 1000);
+                clearTimeout(timeout);
+                timeout = setTimeout(autoUpdateGovSsoSession, (sessionLengthInSeconds - GOVSSO_SESSION_UPDATE_BUFFER_SECONDS) * 1000);
 
                 $('#error').hide();
                 $('#updateButton').prop('disabled',false);
@@ -99,16 +106,3 @@ function autoUpdateGovSsoSession() {
 function getCurrentTimeStampInSeconds() {
     return Math.floor(Date.now() / 1000);
 }
-
-localStorage.openpages = Date.now();
-
-//TODO find a way to use leader election for browser tabs to restart automatic session updates when primary tab is closed
-var onLocalStorageEvent = function(e){
-    if(e.key == 'openpages'){
-        localStorage.page_available = Date.now();
-    }
-    if(e.key == 'page_available'){
-        anotherPageOpen = true;
-    }
-};
-window.addEventListener('storage', onLocalStorageEvent, false);
