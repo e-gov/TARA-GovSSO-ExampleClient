@@ -6,7 +6,8 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.9</version>
+        <!-- TODO GSSO-534 Upgrade to Spring Boot 3.x -->
+        <version>2.7.11</version>
         <relativePath/><!-- Lookup parent from repository. -->
     </parent>
 
@@ -30,13 +31,15 @@
         (see https://issues.apache.org/jira/browse/MNG-4979 ). -->
         <maven.compiler.release>17</maven.compiler.release>
         <spring-boot.build-image.imageName>${project.artifactId}:latest</spring-boot.build-image.imageName><!-- Use "latest" tag instead of version tag. -->
+
+        <logstash-logback-encoder.version>7.3</logstash-logback-encoder.version>
     </properties>
 
     <dependencies><!-- Ordered by scope, groupId, artifactId. -->
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>7.3</version>
+            <version>${logstash-logback-encoder.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -123,8 +126,8 @@
                 </configuration>
             </plugin>
             <plugin>
-                <!-- TODO GSSO-534: Replace with `io.github.git-commit-id:git-commit-id-maven-plugin`
-                                    after upgrading to Spring Boot 3.x, -->
+                <!-- TODO GSSO-534 Replace with io.github.git-commit-id:git-commit-id-maven-plugin and remove
+                      offline=true after upgrading to Spring Boot 3. Starting from 5.0.0 offline=true is default. -->
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
                 <configuration>
