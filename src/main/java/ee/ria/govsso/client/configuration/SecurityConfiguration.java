@@ -1,13 +1,15 @@
 package ee.ria.govsso.client.configuration;
 
-import ee.ria.govsso.client.configuration.govsso.GovssoAuthenticationToken;
 import ee.ria.govsso.client.configuration.govsso.GovssoIdTokenDecoderFactory;
 import ee.ria.govsso.client.configuration.govsso.GovssoLogoutTokenDecoderFactory;
 import ee.ria.govsso.client.configuration.govsso.GovssoProperties;
 import ee.ria.govsso.client.configuration.govsso.GovssoRefreshTokenTokenResponseClient;
-import ee.ria.govsso.client.filter.OidcBackChannelLogoutFilter;
-import ee.ria.govsso.client.filter.OidcRefreshTokenFilter;
+import ee.ria.govsso.client.configuration.govsso.authentication.GovssoAuthentication;
+import ee.ria.govsso.client.configuration.govsso.authentication.GovssoExampleClientUserFactory;
+import ee.ria.govsso.client.filter.ExampleClientSessionExpirationFilter;
 import ee.ria.govsso.client.filter.OidcSessionExpirationFilter;
+import ee.ria.govsso.client.filter.govsso.GovssoRefreshTokenFilter;
+import ee.ria.govsso.client.filter.govsso.OidcBackChannelLogoutFilter;
 import ee.ria.govsso.client.oauth2.CustomAuthorizationRequestResolver;
 import ee.ria.govsso.client.oauth2.CustomOidcClientInitiatedLogoutSuccessHandler;
 import ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler;
@@ -35,6 +37,8 @@ import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.header.HeaderWriter;
@@ -77,6 +81,8 @@ public class SecurityConfiguration {
             SessionRegistry sessionRegistry,
             GovssoIdTokenDecoderFactory idTokenDecoderFactory,
             OAuth2UserService<OidcUserRequest, OidcUser> userService,
+            GovssoExampleClientUserFactory govssoExampleClientUserFactory,
+            ExampleClientSessionProperties sessionProperties,
             Clock clock) throws Exception {
         // @formatter:off
         http
@@ -118,7 +124,7 @@ public class SecurityConfiguration {
                     .addHeaderWriter(corsHeaderWriter())
                         .and()
                 .oauth2Login()
-                    .withObjectPostProcessor(new SetAuthenticationResultConverter())
+                    .withObjectPostProcessor(new SetAuthenticationResultConverter(govssoExampleClientUserFactory))
                     .userInfoEndpoint()
                         .oidcUserService(userService)
                         .and()
@@ -149,9 +155,23 @@ public class SecurityConfiguration {
                       * implementation to work. Without `ConcurrentSessionFilter`, expiring sessions from
                       * `SessionRegistry` would have no effect.
                       */
+                    .sessionAuthenticationStrategy(
+                            new CompositeSessionAuthenticationStrategy(List.of(
+                                    new ChangeSessionIdAuthenticationStrategy(),
+                                    new ExampleClientSessionExpirationAuthenticationStrategy(sessionProperties, clock)
+                            ))
+                    )
                     .maximumSessions(-1)
                     .expiredUrl("/?error=expired_session");
         // @formatter:on
+
+        ExampleClientSessionExpirationFilter exampleClientSessionExpirationFilter =
+                ExampleClientSessionExpirationFilter.builder()
+                        .clock(clock)
+                        .sessionProperties(sessionProperties)
+                        .sessionRegistry(sessionRegistry)
+                        .build();
+        http.addFilterBefore(exampleClientSessionExpirationFilter, ConcurrentSessionFilter.class);
 
         OidcBackChannelLogoutFilter oidcBackchannelLogoutFilter = OidcBackChannelLogoutFilter.builder()
                 .clientRegistrationRepository(clientRegistrationRepository)
@@ -160,20 +180,22 @@ public class SecurityConfiguration {
                 .build();
         http.addFilterAfter(oidcBackchannelLogoutFilter, SessionManagementFilter.class);
 
-        OidcRefreshTokenFilter oidcRefreshTokenFilter = OidcRefreshTokenFilter.builder()
+        GovssoRefreshTokenFilter govssoRefreshTokenFilter = GovssoRefreshTokenFilter.builder()
                 .oAuth2AuthorizedClientService(oAuth2AuthorizedClientService)
                 .refreshTokenResponseClient(refreshTokenTokenResponseClient)
                 .idTokenDecoderFactory(idTokenDecoderFactory)
                 .userService(userService)
                 .clientRegistrationRepository(clientRegistrationRepository)
+                .govssoExampleClientUserFactory(govssoExampleClientUserFactory)
                 .build();
-        http.addFilterBefore(oidcRefreshTokenFilter, SessionManagementFilter.class);
+        http.addFilterBefore(govssoRefreshTokenFilter, SessionManagementFilter.class);
 
         OidcSessionExpirationFilter oidcSessionExpirationFilter = OidcSessionExpirationFilter.builder()
                 .clock(clock)
                 .sessionRegistry(sessionRegistry)
                 .build();
         http.addFilterBefore(oidcSessionExpirationFilter, ConcurrentSessionFilter.class);
+
         return http.build();
     }
 
@@ -248,8 +270,11 @@ public class SecurityConfiguration {
     /* This is required, so we would have access to GovSSO refresh token without using `OAuth2AuthorizedClientService`
      * which has some issues - see `NoopAuthorizedClientService`.
      */
+    @RequiredArgsConstructor
     private static class SetAuthenticationResultConverter
             implements ObjectPostProcessor<OAuth2LoginAuthenticationFilter> {
+
+        private final GovssoExampleClientUserFactory govssoExampleClientUserFactory;
 
         @Override
         public <O extends OAuth2LoginAuthenticationFilter> O postProcess(O filter) {
@@ -257,15 +282,15 @@ public class SecurityConfiguration {
             return filter;
         }
 
-        private GovssoAuthenticationToken createGovssoAuthenticationToken(
+        private GovssoAuthentication createGovssoAuthenticationToken(
                 OAuth2LoginAuthenticationToken authenticationResult
         ) {
-            return new GovssoAuthenticationToken(
+            return new GovssoAuthentication(
                     authenticationResult.getPrincipal(),
                     authenticationResult.getAuthorities(),
                     authenticationResult.getClientRegistration().getRegistrationId(),
-                    authenticationResult.getRefreshToken()
-            );
+                    authenticationResult.getRefreshToken(),
+                    govssoExampleClientUserFactory.create(authenticationResult.getPrincipal()));
         }
 
     }

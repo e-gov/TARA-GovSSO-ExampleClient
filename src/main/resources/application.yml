@@ -43,3 +43,5 @@ govsso:
 
 example-client:
   logo: client-a.svg
+  session:
+    idle-timeout: PT40M

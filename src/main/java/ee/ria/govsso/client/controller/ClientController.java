@@ -1,5 +1,7 @@
 package ee.ria.govsso.client.controller;
 
+import ee.ria.govsso.client.authentication.ExampleClientUser;
+import ee.ria.govsso.client.configuration.ExampleClientSessionProperties;
 import ee.ria.govsso.client.oauth2.SessionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,9 @@ import org.springframework.web.servlet.ModelAndView;
 public class ClientController {
     public static final String LOGIN_VIEW_MAPPING = "/";
     public static final String DASHBOARD_MAPPING = "/dashboard";
+
+    private final ExampleClientSessionProperties sessionProperties;
+
     @Value("${spring.application.name}")
     private String applicationName;
     @Value("${example-client.logo}")
@@ -37,10 +42,13 @@ public class ClientController {
     }
 
     @GetMapping(value = DASHBOARD_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
-    public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser) {
+    public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser, ExampleClientUser exampleClientUser) {
         ModelAndView model = new ModelAndView("dashboard");
         model.addObject("application_name", applicationName);
         model.addObject("application_logo", applicationLogo);
+
+        model.addObject("exampleClientUser", exampleClientUser);
+        model.addObject("allowed_idle_time", sessionProperties.idleTimeout().toSeconds());
 
         log.info("Showing dashboard for subject='{}'", oidcUser.getSubject());
         addIdTokenDataToModel(oidcUser, model);
@@ -48,7 +56,7 @@ public class ClientController {
         return model;
     }
 
-    private void addIdTokenDataToModel(@AuthenticationPrincipal OidcUser oidcUser, ModelAndView model) {
+    private void addIdTokenDataToModel(OidcUser oidcUser, ModelAndView model) {
         model.addObject("id_token", oidcUser.getIdToken().getTokenValue());
         model.addObject("jti", oidcUser.getClaimAsString("jti"));
         model.addObject("iss", oidcUser.getIssuer());
@@ -70,6 +78,7 @@ public class ClientController {
         model.addObject("acr", oidcUser.getAuthenticationContextClass());
         model.addObject("at_hash", oidcUser.getAccessTokenHash());
         model.addObject("sid", oidcUser.getIdToken().getClaim("sid"));
-        model.addObject("time_until_session_expiration_in_seconds", SessionUtil.getTimeUntilAuthenticationExpirationInSeconds());
+        model.addObject("time_until_govsso_session_expiration_in_seconds", SessionUtil.getTimeUntilAuthenticationExpirationInSeconds());
+
     }
 }

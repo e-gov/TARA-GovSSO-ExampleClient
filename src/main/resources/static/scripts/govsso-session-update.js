@@ -62,7 +62,7 @@ function updateGovSsoSession() {
                 $('#sid').text(idToken.sid);
                 $('#error').hide();
 
-                sessionLengthInSeconds = idToken.time_until_session_expiration_in_seconds;
+                sessionLengthInSeconds = idToken.time_until_govsso_session_expiration_in_seconds;
                 clearInterval(sessionTimer);
                 endTime = getCurrentTimeStampInSeconds() + sessionLengthInSeconds - GOVSSO_SESSION_UPDATE_BUFFER_SECONDS;
                 sessionTimer = setInterval(incrementSeconds, 1000);
