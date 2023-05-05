@@ -10,7 +10,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 @ConfigurationPropertiesScan
 public class Application extends SpringBootServletInitializer {
 
-    // Support servlet container as described in https://docs.spring.io/spring-boot/docs/2.7.0/reference/htmlsingle/#howto.traditional-deployment.war
+    // Support servlet container as described in https://docs.spring.io/spring-boot/docs/2.7.x/reference/htmlsingle/#howto.traditional-deployment.war
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(Application.class);
