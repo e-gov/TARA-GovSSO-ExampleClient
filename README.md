@@ -38,7 +38,7 @@ logout and back-channel logout flows.
                  -v "$HOME/.m2:/root/.m2" \
                  -v "$PWD:/usr/src/project" \
                  -w /usr/src/project \
-                 maven:3.8.2-openjdk-17 \
+                 maven:3.8-openjdk-17 \
                  mvn spring-boot:build-image
       ```
       Git Bash users on Windows should add `MSYS_NO_PATHCONV=1` in front of the command.
