@@ -41,7 +41,6 @@ import org.springframework.security.web.authentication.session.ChangeSessionIdAu
 import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
-import org.springframework.security.web.header.HeaderWriter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
 import org.springframework.security.web.session.SessionManagementFilter;
@@ -52,22 +51,15 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 
 import static ee.ria.govsso.client.configuration.CookieConfiguration.COOKIE_NAME_XSRF_TOKEN;
-import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS;
-import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static org.springframework.http.HttpHeaders.ORIGIN;
 
 @Slf4j
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
-
-    private static final List<String> SESSION_UPDATE_CORS_ALLOWED_ENDPOINTS =
-            Arrays.asList("/login/oauth2/code/govsso", "/dashboard");
 
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
@@ -121,8 +113,7 @@ public class SecurityConfiguration {
                     .httpStrictTransportSecurity()
                     .maxAgeInSeconds(Duration.ofDays(186).toSeconds())
                         .and()
-                    .addHeaderWriter(corsHeaderWriter())
-                        .and()
+                    .and()
                 .oauth2Login()
                     .withObjectPostProcessor(new SetAuthenticationResultConverter(govssoExampleClientUserFactory))
                     .userInfoEndpoint()
@@ -219,23 +210,6 @@ public class SecurityConfiguration {
         repository.setSecure(true);
         repository.setCookiePath("/");
         return repository;
-    }
-
-    private HeaderWriter corsHeaderWriter() {
-        return (request, response) -> {
-            // CORS is needed for automatic, in the background session extension.
-            // But only for the endpoint that GovSSO redirects to after successful re-authentication process.
-            // For that redirect Origin header is set to "null", since request comes from a "privacy-sensitive" context.
-            // So setting CORS headers for given case only.
-            // '/dashboard' must be included since the OAuth2 endpoint in turn redirects to dashboard.
-            if (SESSION_UPDATE_CORS_ALLOWED_ENDPOINTS.contains(request.getRequestURI())) {
-                String originHeader = request.getHeader(ORIGIN);
-                if (originHeader != null && originHeader.equals("null")) {
-                    response.addHeader(ACCESS_CONTROL_ALLOW_ORIGIN, "null");
-                    response.addHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
-                }
-            }
-        };
     }
 
     @Bean
