@@ -37,7 +37,7 @@ govsso:
   authorization-grant-type: authorization_code
   redirect-uri: 'https://clienta.localhost:11443/login/oauth2/code/govsso'
   scope: openid
-  issuer-uri: https://gateway.localhost:13443/
+  issuer-uri: https://inproxy.localhost:13443/
   trust-store: classpath:clienta.localhost.truststore.p12
   trust-store-password: changeit
 

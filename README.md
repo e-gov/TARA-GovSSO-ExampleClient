@@ -16,7 +16,7 @@ logout and back-channel logout flows.
    services.
 2. If you have generated new TLS certificates (doable at project GOVSSO-Session) after the last copy, then copy-replace
    `clienta.localhost.keystore.p12` and `clienta.localhost.truststore.p12` files to `src/main/resources`.
-3. Add `127.0.0.1 gateway.localhost` line to `hosts` file. This is needed only for requests originating from
+3. Add `127.0.0.1 inproxy.localhost` line to `hosts` file. This is needed only for requests originating from
    GOVSSO-Client when it's running locally (not in Docker Compose). It's not needed for web browsers as popular browsers
    already have built-in support for resolving `*.localhost` subdomains.
 4. Run
@@ -46,8 +46,8 @@ logout and back-channel logout flows.
 
 ## Endpoints
 
-* http://localhost:11443/ - UI
-* http://localhost:11443/actuator - maintenance endpoints
+* https://clienta.localhost:11443/ - UI
+* https://clienta.localhost:11443/actuator - maintenance endpoints
 
 ## Security operations
 
