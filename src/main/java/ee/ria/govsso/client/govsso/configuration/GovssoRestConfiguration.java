@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.configuration.govsso;
+package ee.ria.govsso.client.govsso.configuration;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;

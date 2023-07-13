@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.oauth2;
+package ee.ria.govsso.client.govsso.oauth2;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -13,12 +13,12 @@ import static org.springframework.web.servlet.i18n.SessionLocaleResolver.LOCALE_
 
 /**
  * A custom logout handler for passing selected authentication locale to
- * {@link CustomOidcClientInitiatedLogoutSuccessHandler}, before session is invalidated by
+ * {@link GovssoClientInitiatedLogoutSuccessHandler}, before session is invalidated by
  * {@link SecurityContextLogoutHandler}.
  *
- * @see CustomAuthorizationRequestResolver
+ * @see GovssoAuthorizationRequestResolver
  */
-public class LocalePassingLogoutHandler implements LogoutHandler {
+public class GovssoLocalePassingLogoutHandler implements LogoutHandler {
 
     public static final String UI_LOCALES_PARAMETER = "ui_locales";
 

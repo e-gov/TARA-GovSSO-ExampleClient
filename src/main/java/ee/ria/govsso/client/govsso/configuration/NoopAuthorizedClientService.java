@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.configuration.govsso;
+package ee.ria.govsso.client.govsso.configuration;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;

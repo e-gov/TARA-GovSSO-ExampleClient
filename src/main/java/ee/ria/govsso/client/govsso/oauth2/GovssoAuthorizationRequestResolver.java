@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.oauth2;
+package ee.ria.govsso.client.govsso.oauth2;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
@@ -14,15 +14,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import static ee.ria.govsso.client.configuration.OidcConfiguration.GOVSSO_REGISTRATION_ID;
-import static ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
+import static ee.ria.govsso.client.govsso.configuration.GovssoOidcConfiguration.GOVSSO_REGISTRATION_ID;
+import static ee.ria.govsso.client.govsso.oauth2.GovssoLocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
 import static org.springframework.web.servlet.i18n.SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME;
 
-public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
+public class GovssoAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
     private final OAuth2AuthorizationRequestResolver requestResolver;
 
-    public CustomAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
+    public GovssoAuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
         this.requestResolver =
                 new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
     }
@@ -40,7 +40,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
     public OAuth2AuthorizationRequest resolve(HttpServletRequest httpServletRequest, String clientRegistrationId) {
         if (!Objects.equals(clientRegistrationId, GOVSSO_REGISTRATION_ID)) {
             throw new IllegalArgumentException(
-                    CustomAuthorizationRequestResolver.class.getName() + " only supports GovSSO");
+                    GovssoAuthorizationRequestResolver.class.getName() + " only supports GovSSO");
         }
         OAuth2AuthorizationRequest authorizationRequest = requestResolver.resolve(httpServletRequest, clientRegistrationId);
         if (authorizationRequest == null) {

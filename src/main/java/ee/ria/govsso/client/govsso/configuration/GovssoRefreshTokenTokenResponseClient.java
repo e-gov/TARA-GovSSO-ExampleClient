@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.configuration.govsso;
+package ee.ria.govsso.client.govsso.configuration;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

@@ -1,18 +1,17 @@
-package ee.ria.govsso.client.configuration;
+package ee.ria.govsso.client.govsso.configuration;
 
-import ee.ria.govsso.client.configuration.govsso.GovssoIdTokenDecoderFactory;
-import ee.ria.govsso.client.configuration.govsso.GovssoLogoutTokenDecoderFactory;
-import ee.ria.govsso.client.configuration.govsso.GovssoProperties;
-import ee.ria.govsso.client.configuration.govsso.GovssoRefreshTokenTokenResponseClient;
-import ee.ria.govsso.client.configuration.govsso.authentication.GovssoAuthentication;
-import ee.ria.govsso.client.configuration.govsso.authentication.GovssoExampleClientUserFactory;
+import ee.ria.govsso.client.configuration.ExampleClientSessionExpirationAuthenticationStrategy;
+import ee.ria.govsso.client.configuration.ExampleClientSessionProperties;
+import ee.ria.govsso.client.configuration.SecurityConstants;
 import ee.ria.govsso.client.filter.ExampleClientSessionExpirationFilter;
-import ee.ria.govsso.client.filter.OidcSessionExpirationFilter;
-import ee.ria.govsso.client.filter.govsso.GovssoRefreshTokenFilter;
-import ee.ria.govsso.client.filter.govsso.OidcBackChannelLogoutFilter;
-import ee.ria.govsso.client.oauth2.CustomAuthorizationRequestResolver;
-import ee.ria.govsso.client.oauth2.CustomOidcClientInitiatedLogoutSuccessHandler;
-import ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler;
+import ee.ria.govsso.client.govsso.filter.GovssoSessionExpirationFilter;
+import ee.ria.govsso.client.govsso.configuration.authentication.GovssoAuthentication;
+import ee.ria.govsso.client.govsso.configuration.authentication.GovssoExampleClientUserFactory;
+import ee.ria.govsso.client.govsso.filter.GovssoRefreshTokenFilter;
+import ee.ria.govsso.client.govsso.filter.OidcBackChannelLogoutFilter;
+import ee.ria.govsso.client.govsso.oauth2.GovssoAuthorizationRequestResolver;
+import ee.ria.govsso.client.govsso.oauth2.GovssoClientInitiatedLogoutSuccessHandler;
+import ee.ria.govsso.client.govsso.oauth2.GovssoLocalePassingLogoutHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,7 +58,7 @@ import static ee.ria.govsso.client.configuration.CookieConfiguration.COOKIE_NAME
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class SecurityConfiguration {
+public class GovssoSecurityConfiguration {
 
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
@@ -121,7 +120,7 @@ public class SecurityConfiguration {
                         .and()
                     .authorizationEndpoint()
                         .authorizationRequestResolver(
-                                new CustomAuthorizationRequestResolver(clientRegistrationRepository))
+                                new GovssoAuthorizationRequestResolver(clientRegistrationRepository))
                         .and()
                     .tokenEndpoint()
                         .accessTokenResponseClient(createAccessTokenResponseClient(govssoRestOperations))
@@ -135,9 +134,9 @@ public class SecurityConfiguration {
                         Using custom handlers to pass ui_locales parameter to GovSSO logout flow.
                     */
                     logoutConfigurer
-                            .logoutSuccessHandler(new CustomOidcClientInitiatedLogoutSuccessHandler(
+                            .logoutSuccessHandler(new GovssoClientInitiatedLogoutSuccessHandler(
                                     clientRegistrationRepository, govssoProperties.postLogoutRedirectUri()))
-                            .getLogoutHandlers().add(0, new LocalePassingLogoutHandler());
+                            .getLogoutHandlers().add(0, new GovssoLocalePassingLogoutHandler());
                 })
                 .sessionManagement()
                      /*
@@ -181,11 +180,11 @@ public class SecurityConfiguration {
                 .build();
         http.addFilterBefore(govssoRefreshTokenFilter, SessionManagementFilter.class);
 
-        OidcSessionExpirationFilter oidcSessionExpirationFilter = OidcSessionExpirationFilter.builder()
+        GovssoSessionExpirationFilter govssoSessionExpirationFilter = GovssoSessionExpirationFilter.builder()
                 .clock(clock)
                 .sessionRegistry(sessionRegistry)
                 .build();
-        http.addFilterBefore(oidcSessionExpirationFilter, ConcurrentSessionFilter.class);
+        http.addFilterBefore(govssoSessionExpirationFilter, ConcurrentSessionFilter.class);
 
         return http.build();
     }

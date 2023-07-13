@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.configuration.govsso.authentication;
+package ee.ria.govsso.client.govsso.configuration.authentication;
 
 import ee.ria.govsso.client.authentication.ExampleClientUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;

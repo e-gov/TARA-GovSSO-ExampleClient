@@ -1,9 +1,9 @@
-package ee.ria.govsso.client.filter.govsso;
+package ee.ria.govsso.client.govsso.filter;
 
 import com.nimbusds.jose.util.JSONObjectUtils;
-import ee.ria.govsso.client.configuration.govsso.GovssoRefreshTokenTokenResponseClient;
-import ee.ria.govsso.client.configuration.govsso.authentication.GovssoAuthentication;
-import ee.ria.govsso.client.configuration.govsso.authentication.GovssoExampleClientUserFactory;
+import ee.ria.govsso.client.govsso.configuration.GovssoRefreshTokenTokenResponseClient;
+import ee.ria.govsso.client.govsso.configuration.authentication.GovssoAuthentication;
+import ee.ria.govsso.client.govsso.configuration.authentication.GovssoExampleClientUserFactory;
 import ee.ria.govsso.client.oauth2.SessionUtil;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static ee.ria.govsso.client.configuration.OidcConfiguration.GOVSSO_REGISTRATION_ID;
+import static ee.ria.govsso.client.govsso.configuration.GovssoOidcConfiguration.GOVSSO_REGISTRATION_ID;
 import static org.springframework.http.HttpMethod.POST;
 
 /**

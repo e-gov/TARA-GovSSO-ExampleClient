@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.configuration.govsso;
+package ee.ria.govsso.client.govsso.configuration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;

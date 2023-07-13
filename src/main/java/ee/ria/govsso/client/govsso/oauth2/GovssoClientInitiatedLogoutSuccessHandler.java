@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.oauth2;
+package ee.ria.govsso.client.govsso.oauth2;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
@@ -17,18 +17,18 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-import static ee.ria.govsso.client.oauth2.LocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
+import static ee.ria.govsso.client.govsso.oauth2.GovssoLocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
 
 /**
  * A custom logout success handler for initiating OIDC logout with additional ui_locales parameter.
  *
  * @see org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler
  */
-public class CustomOidcClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
+public class GovssoClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final String postLogoutRedirectUri;
 
-    public CustomOidcClientInitiatedLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository, String postLogoutRedirectUri) {
+    public GovssoClientInitiatedLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository, String postLogoutRedirectUri) {
         this.clientRegistrationRepository = clientRegistrationRepository;
         this.postLogoutRedirectUri = postLogoutRedirectUri;
     }

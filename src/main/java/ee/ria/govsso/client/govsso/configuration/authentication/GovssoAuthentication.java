@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.configuration.govsso.authentication;
+package ee.ria.govsso.client.govsso.configuration.authentication;
 
 import ee.ria.govsso.client.authentication.ExampleClientAuthentication;
 import ee.ria.govsso.client.authentication.ExampleClientUser;

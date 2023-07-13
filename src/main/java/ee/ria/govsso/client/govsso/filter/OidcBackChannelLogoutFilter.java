@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.filter.govsso;
+package ee.ria.govsso.client.govsso.filter;
 
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;

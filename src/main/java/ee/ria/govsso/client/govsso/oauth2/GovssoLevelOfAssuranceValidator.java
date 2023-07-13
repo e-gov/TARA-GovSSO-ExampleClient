@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.oauth2;
+package ee.ria.govsso.client.govsso.oauth2;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.security.oauth2.core.OAuth2Error;

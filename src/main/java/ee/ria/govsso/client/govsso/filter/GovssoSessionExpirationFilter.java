@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.filter;
+package ee.ria.govsso.client.govsso.filter;
 
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.time.Instant;
 @Slf4j
 @RequiredArgsConstructor
 @Builder
-public class OidcSessionExpirationFilter extends OncePerRequestFilter {
+public class GovssoSessionExpirationFilter extends OncePerRequestFilter {
 
     private final Clock clock;
     private final SessionRegistry sessionRegistry;

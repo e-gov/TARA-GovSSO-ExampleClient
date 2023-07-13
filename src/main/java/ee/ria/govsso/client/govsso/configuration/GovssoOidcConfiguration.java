@@ -1,7 +1,5 @@
-package ee.ria.govsso.client.configuration;
+package ee.ria.govsso.client.govsso.configuration;
 
-import ee.ria.govsso.client.configuration.govsso.GovssoClientRegistrationFactory;
-import ee.ria.govsso.client.configuration.govsso.GovssoProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
@@ -20,7 +18,7 @@ import java.util.Set;
 
 @Configuration
 @Slf4j
-public class OidcConfiguration {
+public class GovssoOidcConfiguration {
 
     public static final String GOVSSO_REGISTRATION_ID = "govsso";
 

@@ -1,4 +1,4 @@
-package ee.ria.govsso.client.configuration.govsso;
+package ee.ria.govsso.client.govsso.configuration;
 
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
