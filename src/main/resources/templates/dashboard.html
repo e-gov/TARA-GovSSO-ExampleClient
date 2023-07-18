@@ -13,7 +13,8 @@
     <script src="https://code.jquery.com/jquery-3.6.3.slim.min.js"
             integrity="sha256-ZwqZIVdD3iXNyGHbSYdsmWP//UBokj2FHAxKuSBKDSo="
             crossorigin="anonymous"></script>
-    <script src="/scripts/govsso-session-update.js" type="text/javascript"></script>
+    <script th:if="${authentication_provider == 'govsso'}"
+            src="/scripts/govsso-session-update.js" type="text/javascript"></script>
     <script src="/scripts/local-session.js" type="text/javascript"></script>
     <!-- Bootstrap CSS -->
     <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
@@ -29,7 +30,7 @@
     </a>
     <ul class=" navbar-nav px-3">
         <li class="nav-item text-nowrap">
-            <form method="post" th:action="@{/oauth/logout}">
+            <form method="post" th:action="@{/oauth/logout}" id="logoutForm">
                 <input class="btn btn-outline-secondary" name="logout_button" type="submit" value="Log out"/>
             </form>
         </li>
@@ -55,7 +56,8 @@
                         <span th:id="idleTimer" th:text="${allowed_idle_time}"></span>s.
                         Refresh the whole page to refresh the timer.
                     </div>
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-2 mb-md-0">
+                    <div th:if="${authentication_provider == 'govsso'}"
+                         class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-2 mb-md-0">
                         <div th:id="updateToggle"><input type="checkbox" id="autoUpdate" checked>GovSSO Session update in: </div>
                         <div class="mx-2" th:id="updateTimer" th:text="${time_until_govsso_session_expiration_in_seconds - 120}"></div>
                         <button th:id="updateButton" class="btn btn-sm btn-outline-secondary" onclick="updateGovSsoSession();">
@@ -72,7 +74,7 @@
             </div>
             <div th:id="error" class="alert alert-danger" style="display:none;" role="alert">
             </div>
-            <h3>GovSSO Token Endpoint Response</h3>
+            <h3>Token Endpoint Response</h3>
             <div class="table-responsive">
                 <table class="table table-striped table-sm">
                     <tbody>
@@ -84,7 +86,7 @@
                 </table>
             </div>
 
-            <h3>GovSSO ID Token</h3>
+            <h3>ID Token</h3>
             <div class="table-responsive">
                 <table class="table table-striped table-sm">
                     <thead>
@@ -94,69 +96,9 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td>jti</td>
-                        <td th:id="jti" th:text="${jti}"></td>
-                    </tr>
-                    <tr>
-                        <td>iss</td>
-                        <td th:id="iss" th:text="${iss}"></td>
-                    </tr>
-                    <tr>
-                        <td>aud</td>
-                        <td th:id="aud" th:text="${aud}"></td>
-                    </tr>
-                    <tr>
-                        <td>exp</td>
-                        <td th:id="exp" th:text="${exp}"></td>
-                    </tr>
-                    <tr>
-                        <td>iat</td>
-                        <td th:id="iat" th:text="${iat}"></td>
-                    </tr>
-                    <tr>
-                        <td>sub</td>
-                        <td th:id="sub" th:text="${sub}"></td>
-                    </tr>
-                    <tr>
-                        <td>birthdate</td>
-                        <td th:id="birthdate" th:text="${birthdate}"></td>
-                    </tr>
-                    <tr>
-                        <td>given_name</td>
-                        <td th:id="given_name" th:text="${given_name}"></td>
-                    </tr>
-                    <tr>
-                        <td>family_name</td>
-                        <td th:id="family_name" th:text="${family_name}"></td>
-                    </tr>
-                    <tr th:if="${#ctx.containsVariable('phone_number')}">
-                        <td>phone_number</td>
-                        <td th:text="${phone_number}"></td>
-                    </tr>
-                    <tr th:if="${#ctx.containsVariable('phone_number_verified')}">
-                        <td>phone_number_verified</td>
-                        <td th:text="${phone_number_verified}"></td>
-                    </tr>
-                    <tr>
-                        <td>amr</td>
-                        <td th:id="amr" th:text="${amr}"></td>
-                    </tr>
-                    <tr>
-                        <td>nonce</td>
-                        <td th:id="nonce" th:text="${nonce}"></td>
-                    </tr>
-                    <tr>
-                        <td>acr</td>
-                        <td th:id="acr" th:text="${acr}"></td>
-                    </tr>
-                    <tr>
-                        <td>at_hash</td>
-                        <td th:id="at_hash" th:text="${at_hash}"></td>
-                    </tr>
-                    <tr>
-                        <td>sid</td>
-                        <td th:id="sid" th:text="${sid}"></td>
+                    <tr th:each="claim: ${claims}">
+                        <td th:text="${claim.getKey()}"/>
+                        <td th:id="${claim.getKey()}" th:text="${claim.getValue()}">
                     </tr>
                     </tbody>
                 </table>

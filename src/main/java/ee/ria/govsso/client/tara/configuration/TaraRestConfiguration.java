@@ -1,7 +1,7 @@
-package ee.ria.govsso.client.govsso.configuration;
+package ee.ria.govsso.client.tara.configuration;
 
-import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
 import ee.ria.govsso.client.oauth2.OAuth2RestOperationsFactory;
+import ee.ria.govsso.client.tara.configuration.condition.ConditionalOnTara;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,18 +15,18 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
 @Configuration
-@ConditionalOnGovsso
-public class GovssoRestConfiguration {
+@ConditionalOnTara
+public class TaraRestConfiguration {
 
     @Bean
-    RestOperations govssoRestOperations(GovssoProperties properties)
+    RestOperations taraRestOperations(TaraProperties properties)
             throws IOException, CertificateException, NoSuchAlgorithmException, KeyStoreException,
             KeyManagementException {
         SSLContext sslContext = createSslContext(properties);
         return OAuth2RestOperationsFactory.create(sslContext);
     }
 
-    private static SSLContext createSslContext(GovssoProperties properties)
+    private static SSLContext createSslContext(TaraProperties properties)
             throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, IOException {
         return new SSLContextBuilder()
                 .loadTrustMaterial(
@@ -34,5 +34,6 @@ public class GovssoRestConfiguration {
                         properties.trustStorePassword().toCharArray())
                 .build();
     }
+
 
 }

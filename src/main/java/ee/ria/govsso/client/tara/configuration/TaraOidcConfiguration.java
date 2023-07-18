@@ -1,6 +1,6 @@
-package ee.ria.govsso.client.govsso.configuration;
+package ee.ria.govsso.client.tara.configuration;
 
-import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
+import ee.ria.govsso.client.tara.configuration.condition.ConditionalOnTara;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
@@ -19,23 +19,23 @@ import java.util.Set;
 
 @Configuration
 @Slf4j
-@ConditionalOnGovsso
-public class GovssoOidcConfiguration {
+@ConditionalOnTara
+public class TaraOidcConfiguration {
 
-    public static final String GOVSSO_REGISTRATION_ID = "govsso";
+    public static final String TARA_REGISTRATION_ID = "tara";
 
     @Bean
     ClientRegistrationRepository clientRegistrationRepository(
             @Autowired(required = false) OAuth2ClientProperties oAuth2ClientProperties,
-            GovssoProperties govssoProperties,
-            GovssoClientRegistrationFactory govssoClientRegistrationFactory
+            TaraProperties taraProperties,
+            TaraClientRegistrationFactory clientRegistrationFactory
     ) {
         if (oAuth2ClientProperties != null) {
             verifyNoUnhandledOAuth2ClientConfiguration(oAuth2ClientProperties);
         }
-        ClientRegistration govssoClientRegistration =
-                govssoClientRegistrationFactory.createClientRegistration(GOVSSO_REGISTRATION_ID, govssoProperties);
-        return new InMemoryClientRegistrationRepository(List.of(govssoClientRegistration));
+        ClientRegistration taraClientRegistration =
+                clientRegistrationFactory.createClientRegistration(TARA_REGISTRATION_ID, taraProperties);
+        return new InMemoryClientRegistrationRepository(List.of(taraClientRegistration));
     }
 
 
@@ -44,7 +44,7 @@ public class GovssoOidcConfiguration {
         Set<String> providerIds = oAuth2ClientProperties.getProvider().keySet();
         if (!registrationIds.isEmpty() || !providerIds.isEmpty()) {
             throw new IllegalArgumentException(
-                    "This implementation does not support any OAuth client registrations in addition to GovSSO");
+                    "This implementation does not support any OAuth client registrations in addition to TARA");
         }
     }
 

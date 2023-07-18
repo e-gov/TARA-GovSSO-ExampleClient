@@ -1,10 +1,12 @@
 package ee.ria.govsso.client.govsso.configuration.authentication;
 
 import ee.ria.govsso.client.authentication.ExampleClientUser;
+import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnGovsso
 public class GovssoExampleClientUserFactory {
 
     public ExampleClientUser create(OAuth2User govssoOAuth2User) {

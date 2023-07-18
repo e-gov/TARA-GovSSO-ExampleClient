@@ -29,7 +29,7 @@ public class GovssoLogoutTokenDecoderFactory implements JwtDecoderFactory<Client
     private final RestOperations restOperations;
     private final Map<String, JwtDecoder> jwtDecoders = new ConcurrentHashMap<>();
 
-    public GovssoLogoutTokenDecoderFactory(@Qualifier("govssoRestTemplate") RestOperations restOperations) {
+    public GovssoLogoutTokenDecoderFactory(@Qualifier("govssoRestOperations") RestOperations restOperations) {
         this.restOperations = restOperations;
     }
 

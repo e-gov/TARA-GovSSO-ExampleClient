@@ -1,5 +1,6 @@
 package ee.ria.govsso.client.govsso.configuration;
 
+import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.security.core.Authentication;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
+@ConditionalOnGovsso
 public class NoopAuthorizedClientService implements OAuth2AuthorizedClientService {
 
     @Override

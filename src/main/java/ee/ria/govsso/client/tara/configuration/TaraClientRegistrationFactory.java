@@ -1,8 +1,8 @@
-package ee.ria.govsso.client.govsso.configuration;
+package ee.ria.govsso.client.tara.configuration;
 
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.openid.connect.sdk.op.OIDCProviderMetadata;
-import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
+import ee.ria.govsso.client.tara.configuration.condition.ConditionalOnTara;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.RequestEntity;
@@ -21,18 +21,18 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 
 @Component
-@ConditionalOnGovsso
-public class GovssoClientRegistrationFactory {
+@ConditionalOnTara
+public class TaraClientRegistrationFactory {
 
     private static final String OIDC_METADATA_PATH = "/.well-known/openid-configuration";
 
     private final RestOperations restOperations;
 
-    public GovssoClientRegistrationFactory(@Qualifier("govssoRestOperations") RestOperations restOperations) {
+    public TaraClientRegistrationFactory(@Qualifier("taraRestOperations") RestOperations restOperations) {
         this.restOperations = restOperations;
     }
 
-    public ClientRegistration createClientRegistration(String registrationId, GovssoProperties properties) {
+    public ClientRegistration createClientRegistration(String registrationId, TaraProperties properties) {
         String issuer = requireNonNull(properties.issuerUri());
         OIDCProviderMetadata metadata = getMetadata(issuer, restOperations);
         return ClientRegistration.withRegistrationId(registrationId)
@@ -51,13 +51,13 @@ public class GovssoClientRegistrationFactory {
                 .build();
     }
 
-    private OIDCProviderMetadata getMetadata(String issuer, RestOperations govssoRestOperations) {
+    private OIDCProviderMetadata getMetadata(String issuer, RestOperations taraRestOperations) {
         URI issuerUri = URI.create(issuer);
         URI metadataUri = UriComponentsBuilder.fromUri(issuerUri)
                 .replacePath(issuerUri.getPath() + OIDC_METADATA_PATH)
                 .build(Collections.emptyMap());
         RequestEntity<Void> request = RequestEntity.get(metadataUri).build();
-        JSONObject configuration = requireNonNull(govssoRestOperations.exchange(request, JSONObject.class).getBody());
+        JSONObject configuration = requireNonNull(taraRestOperations.exchange(request, JSONObject.class).getBody());
         OIDCProviderMetadata metadata = parseMetadata(configuration);
         verifyIssuer(issuer, metadata);
         return metadata;

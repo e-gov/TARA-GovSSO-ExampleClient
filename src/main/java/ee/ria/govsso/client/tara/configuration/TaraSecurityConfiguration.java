@@ -1,18 +1,13 @@
-package ee.ria.govsso.client.govsso.configuration;
+package ee.ria.govsso.client.tara.configuration;
 
 import ee.ria.govsso.client.configuration.ExampleClientSessionExpirationAuthenticationStrategy;
 import ee.ria.govsso.client.configuration.ExampleClientSessionProperties;
 import ee.ria.govsso.client.configuration.SecurityConstants;
 import ee.ria.govsso.client.filter.ExampleClientSessionExpirationFilter;
-import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
-import ee.ria.govsso.client.govsso.filter.GovssoSessionExpirationFilter;
-import ee.ria.govsso.client.govsso.configuration.authentication.GovssoAuthentication;
-import ee.ria.govsso.client.govsso.configuration.authentication.GovssoExampleClientUserFactory;
-import ee.ria.govsso.client.govsso.filter.GovssoRefreshTokenFilter;
-import ee.ria.govsso.client.govsso.filter.OidcBackChannelLogoutFilter;
-import ee.ria.govsso.client.govsso.oauth2.GovssoAuthorizationRequestResolver;
-import ee.ria.govsso.client.govsso.oauth2.GovssoClientInitiatedLogoutSuccessHandler;
-import ee.ria.govsso.client.govsso.oauth2.GovssoLocalePassingLogoutHandler;
+import ee.ria.govsso.client.tara.configuration.authentication.TaraAuthentication;
+import ee.ria.govsso.client.tara.configuration.authentication.TaraExampleClientUserFactory;
+import ee.ria.govsso.client.tara.configuration.condition.ConditionalOnTara;
+import ee.ria.govsso.client.tara.oauth2.TaraAuthorizationRequestResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,7 +19,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -43,7 +37,6 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
-import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.web.client.RestOperations;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,22 +52,17 @@ import static ee.ria.govsso.client.configuration.CookieConfiguration.COOKIE_NAME
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@ConditionalOnGovsso
-public class GovssoSecurityConfiguration {
-
-    private final ClientRegistrationRepository clientRegistrationRepository;
-    private final OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
+@ConditionalOnTara
+public class TaraSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(
             HttpSecurity http,
-            GovssoProperties govssoProperties,
-            @Qualifier("govssoRestOperations") RestOperations govssoRestOperations,
-            GovssoRefreshTokenTokenResponseClient refreshTokenTokenResponseClient,
+            @Qualifier("taraRestOperations") RestOperations taraRestOperations,
             SessionRegistry sessionRegistry,
-            GovssoIdTokenDecoderFactory idTokenDecoderFactory,
             OAuth2UserService<OidcUserRequest, OidcUser> userService,
-            GovssoExampleClientUserFactory govssoExampleClientUserFactory,
+            ClientRegistrationRepository clientRegistrationRepository,
+            TaraExampleClientUserFactory exampleClientUserFactory,
             ExampleClientSessionProperties sessionProperties,
             Clock clock) throws Exception {
         // @formatter:off
@@ -86,13 +74,10 @@ public class GovssoSecurityConfiguration {
                     .antMatchers(
                             "/", "/assets/*", "/scripts/*", "/actuator/**")
                         .permitAll()
-                    .requestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
-                        .permitAll()
                     .anyRequest()
                         .authenticated()
                     .and()
                 .csrf()
-                    .ignoringRequestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
                     .csrfTokenRepository(csrfTokenRepository())
                     .and()
                 .headers()
@@ -111,29 +96,23 @@ public class GovssoSecurityConfiguration {
                         .and()
                     .and()
                 .oauth2Login()
-                    .withObjectPostProcessor(new SetAuthenticationResultConverter(govssoExampleClientUserFactory))
+                    .withObjectPostProcessor(new SetAuthenticationResultConverter(exampleClientUserFactory))
                     .userInfoEndpoint()
                         .oidcUserService(userService)
                         .and()
                     .authorizationEndpoint()
                         .authorizationRequestResolver(
-                                new GovssoAuthorizationRequestResolver(clientRegistrationRepository))
+                                new TaraAuthorizationRequestResolver(clientRegistrationRepository))
                         .and()
                     .tokenEndpoint()
-                        .accessTokenResponseClient(createAccessTokenResponseClient(govssoRestOperations))
+                        .accessTokenResponseClient(createAccessTokenResponseClient(taraRestOperations))
                         .and()
                     .defaultSuccessUrl("/dashboard")
                     .failureHandler(getAuthFailureHandler())
                     .and()
                 .logout(logoutConfigurer -> {
                     logoutConfigurer.logoutUrl("/oauth/logout");
-                    /*
-                        Using custom handlers to pass ui_locales parameter to GovSSO logout flow.
-                    */
-                    logoutConfigurer
-                            .logoutSuccessHandler(new GovssoClientInitiatedLogoutSuccessHandler(
-                                    clientRegistrationRepository, govssoProperties.postLogoutRedirectUri()))
-                            .getLogoutHandlers().add(0, new GovssoLocalePassingLogoutHandler());
+                    logoutConfigurer.logoutSuccessUrl("/?show-post-logout-message");
                 })
                 .sessionManagement()
                      /*
@@ -159,37 +138,14 @@ public class GovssoSecurityConfiguration {
                         .sessionRegistry(sessionRegistry)
                         .build();
         http.addFilterBefore(exampleClientSessionExpirationFilter, ConcurrentSessionFilter.class);
-
-        OidcBackChannelLogoutFilter oidcBackchannelLogoutFilter = OidcBackChannelLogoutFilter.builder()
-                .clientRegistrationRepository(clientRegistrationRepository)
-                .sessionRegistry(sessionRegistry)
-                .logoutTokenDecoderFactory(new GovssoLogoutTokenDecoderFactory(govssoRestOperations))
-                .build();
-        http.addFilterAfter(oidcBackchannelLogoutFilter, SessionManagementFilter.class);
-
-        GovssoRefreshTokenFilter govssoRefreshTokenFilter = GovssoRefreshTokenFilter.builder()
-                .oAuth2AuthorizedClientService(oAuth2AuthorizedClientService)
-                .refreshTokenResponseClient(refreshTokenTokenResponseClient)
-                .idTokenDecoderFactory(idTokenDecoderFactory)
-                .userService(userService)
-                .clientRegistrationRepository(clientRegistrationRepository)
-                .govssoExampleClientUserFactory(govssoExampleClientUserFactory)
-                .build();
-        http.addFilterBefore(govssoRefreshTokenFilter, SessionManagementFilter.class);
-
-        GovssoSessionExpirationFilter govssoSessionExpirationFilter = GovssoSessionExpirationFilter.builder()
-                .clock(clock)
-                .sessionRegistry(sessionRegistry)
-                .build();
-        http.addFilterBefore(govssoSessionExpirationFilter, ConcurrentSessionFilter.class);
-
         return http.build();
     }
 
-    private static DefaultAuthorizationCodeTokenResponseClient createAccessTokenResponseClient(RestOperations govssoRestOperations) {
+    private static DefaultAuthorizationCodeTokenResponseClient createAccessTokenResponseClient(
+            RestOperations taraRestOperations) {
         DefaultAuthorizationCodeTokenResponseClient accessTokenResponseClient =
                 new DefaultAuthorizationCodeTokenResponseClient();
-        accessTokenResponseClient.setRestOperations(govssoRestOperations);
+        accessTokenResponseClient.setRestOperations(taraRestOperations);
         return accessTokenResponseClient;
     }
 
@@ -244,23 +200,22 @@ public class GovssoSecurityConfiguration {
     private static class SetAuthenticationResultConverter
             implements ObjectPostProcessor<OAuth2LoginAuthenticationFilter> {
 
-        private final GovssoExampleClientUserFactory govssoExampleClientUserFactory;
+        private final TaraExampleClientUserFactory exampleClientUserFactory;
 
         @Override
         public <O extends OAuth2LoginAuthenticationFilter> O postProcess(O filter) {
-            filter.setAuthenticationResultConverter(this::createGovssoAuthenticationToken);
+            filter.setAuthenticationResultConverter(this::createTaraAuthenticationToken);
             return filter;
         }
 
-        private GovssoAuthentication createGovssoAuthenticationToken(
+        private TaraAuthentication createTaraAuthenticationToken(
                 OAuth2LoginAuthenticationToken authenticationResult
         ) {
-            return new GovssoAuthentication(
+            return new TaraAuthentication(
                     authenticationResult.getPrincipal(),
                     authenticationResult.getAuthorities(),
                     authenticationResult.getClientRegistration().getRegistrationId(),
-                    authenticationResult.getRefreshToken(),
-                    govssoExampleClientUserFactory.create(authenticationResult.getPrincipal()));
+                    exampleClientUserFactory.create(authenticationResult.getPrincipal()));
         }
 
     }

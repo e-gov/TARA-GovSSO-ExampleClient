@@ -1,7 +1,7 @@
-package ee.ria.govsso.client.govsso.configuration;
+package ee.ria.govsso.client.tara.configuration;
 
-import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
-import ee.ria.govsso.client.govsso.oauth2.GovssoLevelOfAssuranceValidator;
+import ee.ria.govsso.client.tara.configuration.condition.ConditionalOnTara;
+import ee.ria.govsso.client.tara.oauth2.TaraLevelOfAssuranceValidator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenValidator;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -19,33 +19,33 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static ee.ria.govsso.client.govsso.configuration.GovssoOidcConfiguration.GOVSSO_REGISTRATION_ID;
+import static ee.ria.govsso.client.tara.configuration.TaraOidcConfiguration.TARA_REGISTRATION_ID;
 import static org.springframework.security.oauth2.client.oidc.authentication.OidcIdTokenDecoderFactory.createDefaultClaimTypeConverters;
 
 @Component
 @Qualifier("idTokenDecoderFactory")
-@ConditionalOnGovsso
-public class GovssoIdTokenDecoderFactory implements JwtDecoderFactory<ClientRegistration> {
+@ConditionalOnTara
+public class TaraIdTokenDecoderFactory implements JwtDecoderFactory<ClientRegistration> {
 
     private static final SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.RS256;
 
     private final RestOperations restOperations;
-    private final GovssoLevelOfAssuranceValidator govssoLevelOfAssuranceValidator;
+    private final TaraLevelOfAssuranceValidator taraLevelOfAssuranceValidator;
     private final Map<String, JwtDecoder> jwtDecoders = new ConcurrentHashMap<>();
 
-    public GovssoIdTokenDecoderFactory(
-            @Qualifier("govssoRestOperations") RestOperations restOperations,
-            GovssoLevelOfAssuranceValidator govssoLevelOfAssuranceValidator) {
+    public TaraIdTokenDecoderFactory(
+            @Qualifier("taraRestOperations") RestOperations restOperations,
+            TaraLevelOfAssuranceValidator taraLevelOfAssuranceValidator) {
         this.restOperations = restOperations;
-        this.govssoLevelOfAssuranceValidator = govssoLevelOfAssuranceValidator;
+        this.taraLevelOfAssuranceValidator = taraLevelOfAssuranceValidator;
     }
 
     @Override
     public JwtDecoder createDecoder(ClientRegistration clientRegistration) {
         Assert.notNull(clientRegistration, "clientRegistration cannot be null");
-        if (!Objects.equals(clientRegistration.getRegistrationId(), GOVSSO_REGISTRATION_ID)) {
+        if (!Objects.equals(clientRegistration.getRegistrationId(), TARA_REGISTRATION_ID)) {
             throw new IllegalArgumentException(
-                    GovssoIdTokenDecoderFactory.class.getName() + " only supports GovSSO");
+                    TaraIdTokenDecoderFactory.class.getName() + " only supports TARA");
         }
         return jwtDecoders.computeIfAbsent(
                 clientRegistration.getRegistrationId(),
@@ -60,7 +60,7 @@ public class GovssoIdTokenDecoderFactory implements JwtDecoderFactory<ClientRegi
                 .build();
         jwtDecoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                 new OidcIdTokenValidator(clientRegistration),
-                govssoLevelOfAssuranceValidator
+                taraLevelOfAssuranceValidator
         ));
         jwtDecoder.setClaimSetConverter(new ClaimTypeConverter(createDefaultClaimTypeConverters()));
         return jwtDecoder;

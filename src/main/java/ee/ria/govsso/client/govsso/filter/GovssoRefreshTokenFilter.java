@@ -4,8 +4,9 @@ import com.nimbusds.jose.util.JSONObjectUtils;
 import ee.ria.govsso.client.govsso.configuration.GovssoRefreshTokenTokenResponseClient;
 import ee.ria.govsso.client.govsso.configuration.authentication.GovssoAuthentication;
 import ee.ria.govsso.client.govsso.configuration.authentication.GovssoExampleClientUserFactory;
-import ee.ria.govsso.client.oauth2.SessionUtil;
+import ee.ria.govsso.client.govsso.oauth2.GovssoSessionUtil;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +46,8 @@ import static org.springframework.http.HttpMethod.POST;
  * and updating authenticated principal.
  */
 @Slf4j
+@RequiredArgsConstructor
+@Builder
 public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
 
     public static final RequestMatcher REQUEST_MATCHER =
@@ -56,22 +59,6 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
     private final OAuth2UserService<OidcUserRequest, OidcUser> userService;
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final GovssoExampleClientUserFactory govssoExampleClientUserFactory;
-
-    @Builder
-    public GovssoRefreshTokenFilter(
-            OAuth2AuthorizedClientService oAuth2AuthorizedClientService,
-            GovssoRefreshTokenTokenResponseClient refreshTokenResponseClient,
-            JwtDecoderFactory<ClientRegistration> idTokenDecoderFactory,
-            OAuth2UserService<OidcUserRequest, OidcUser> userService,
-            ClientRegistrationRepository clientRegistrationRepository,
-            GovssoExampleClientUserFactory govssoExampleClientUserFactory) {
-        this.oAuth2AuthorizedClientService = oAuth2AuthorizedClientService;
-        this.refreshTokenResponseClient = refreshTokenResponseClient;
-        this.idTokenDecoderFactory = idTokenDecoderFactory;
-        this.userService = userService;
-        this.clientRegistrationRepository = clientRegistrationRepository;
-        this.govssoExampleClientUserFactory = govssoExampleClientUserFactory;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -187,7 +174,8 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
         response.put("acr", idToken.getClaimAsString("acr"));
         response.put("at_hash", idToken.getClaimAsString("at_hash"));
         response.put("sid", idToken.getClaimAsString("sid"));
-        response.put("time_until_govsso_session_expiration_in_seconds", SessionUtil.getTimeUntilAuthenticationExpirationInSeconds());
+        response.put("time_until_govsso_session_expiration_in_seconds",
+                GovssoSessionUtil.getTimeUntilAuthenticationExpiration().toSeconds());
         return JSONObjectUtils.toJSONString(response);
     }
 

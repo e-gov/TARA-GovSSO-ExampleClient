@@ -1,5 +1,6 @@
 package ee.ria.govsso.client.govsso.configuration;
 
+import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -35,6 +36,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * but does not use access_token.
  */
 @Component
+@ConditionalOnGovsso
 public class GovssoRefreshTokenTokenResponseClient
         implements OAuth2AccessTokenResponseClient<GovssoRefreshTokenTokenResponseClient.Request> {
 
@@ -42,7 +44,7 @@ public class GovssoRefreshTokenTokenResponseClient
 
     private final RestOperations restOperations;
 
-    public GovssoRefreshTokenTokenResponseClient(@Qualifier("govssoRestTemplate") RestOperations restOperations) {
+    public GovssoRefreshTokenTokenResponseClient(@Qualifier("govssoRestOperations") RestOperations restOperations) {
         this.restOperations = restOperations;
     }
 

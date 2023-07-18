@@ -2,16 +2,24 @@ package ee.ria.govsso.client.controller;
 
 import ee.ria.govsso.client.authentication.ExampleClientUser;
 import ee.ria.govsso.client.configuration.ExampleClientSessionProperties;
-import ee.ria.govsso.client.oauth2.SessionUtil;
+import ee.ria.govsso.client.govsso.oauth2.GovssoSessionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static ee.ria.govsso.client.govsso.configuration.condition.OnGovssoCondition.GOVSSO_PROFILE;
+import static ee.ria.govsso.client.tara.configuration.condition.OnTaraCondition.TARA_PROFILE;
 
 @Slf4j
 @Controller
@@ -21,6 +29,7 @@ public class ClientController {
     public static final String DASHBOARD_MAPPING = "/dashboard";
 
     private final ExampleClientSessionProperties sessionProperties;
+    private final Environment environment;
 
     @Value("${spring.application.name}")
     private String applicationName;
@@ -34,9 +43,11 @@ public class ClientController {
             ModelAndView model = new ModelAndView("loginView");
             model.addObject("application_name", applicationName);
             model.addObject("application_logo", applicationLogo);
+
+            model.addObject("authentication_provider", getAuthenticationProvider());
             return model;
         } else {
-            log.info("User has been authenticated by GovSSO, redirecting browser to dashboard. subject='{}'", oidcUser.getSubject());
+            log.info("User has been authenticated, redirecting browser to dashboard. subject='{}'", oidcUser.getSubject());
             return new ModelAndView("redirect:/dashboard");
         }
     }
@@ -49,6 +60,7 @@ public class ClientController {
 
         model.addObject("exampleClientUser", exampleClientUser);
         model.addObject("allowed_idle_time", sessionProperties.idleTimeout().toSeconds());
+        model.addObject("authentication_provider", getAuthenticationProvider());
 
         log.info("Showing dashboard for subject='{}'", oidcUser.getSubject());
         addIdTokenDataToModel(oidcUser, model);
@@ -58,27 +70,36 @@ public class ClientController {
 
     private void addIdTokenDataToModel(OidcUser oidcUser, ModelAndView model) {
         model.addObject("id_token", oidcUser.getIdToken().getTokenValue());
-        model.addObject("jti", oidcUser.getClaimAsString("jti"));
-        model.addObject("iss", oidcUser.getIssuer());
-        model.addObject("aud", oidcUser.getAudience());
-        model.addObject("exp", oidcUser.getExpiresAt());
-        model.addObject("iat", oidcUser.getIssuedAt());
-        model.addObject("sub", oidcUser.getSubject());
-        model.addObject("birthdate", oidcUser.getClaimAsString("birthdate"));
-        model.addObject("given_name", oidcUser.getClaimAsString("given_name"));
-        model.addObject("family_name", oidcUser.getClaimAsString("family_name"));
-        if (oidcUser.hasClaim("phone_number")) {
-            model.addObject("phone_number", oidcUser.getPhoneNumber());
-        }
-        if (oidcUser.hasClaim("phone_number_verified")) {
-            model.addObject("phone_number_verified", oidcUser.getPhoneNumberVerified());
-        }
-        model.addObject("amr", oidcUser.getAuthenticationMethods());
-        model.addObject("nonce", oidcUser.getNonce());
-        model.addObject("acr", oidcUser.getAuthenticationContextClass());
-        model.addObject("at_hash", oidcUser.getAccessTokenHash());
-        model.addObject("sid", oidcUser.getIdToken().getClaim("sid"));
-        model.addObject("time_until_govsso_session_expiration_in_seconds", SessionUtil.getTimeUntilAuthenticationExpirationInSeconds());
-
+        model.addObject("claims", flattenClaims(oidcUser.getClaims()).entrySet());
+        model.addObject(
+                "time_until_govsso_session_expiration_in_seconds",
+                GovssoSessionUtil.getTimeUntilAuthenticationExpiration().toSeconds());
     }
+
+    private Map<String, String> flattenClaims(Map<?, ?> claims) {
+        Map<String, String> flatClaims = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> claim : claims.entrySet()) {
+            String key = claim.getKey().toString();
+            Object value = claim.getValue();
+            if (value instanceof Map<?, ?> innerClaims) {
+                Map<String, String> flattenedInnerClaims = flattenClaims(innerClaims);
+                for (Map.Entry<String, String> innerClaim : flattenedInnerClaims.entrySet()) {
+                    flatClaims.put(key + "." + innerClaim.getKey(), innerClaim.getValue());
+                }
+                continue;
+            }
+            flatClaims.put(key, value.toString());
+        }
+        return flatClaims;
+    }
+
+    private String getAuthenticationProvider() {
+        Set<String> authenticationProviderProfiles = Set.of(GOVSSO_PROFILE, TARA_PROFILE);
+        Set<String> activeProfiles = Set.of(environment.getActiveProfiles());
+        return authenticationProviderProfiles.stream()
+                .filter(activeProfiles::contains)
+                .findAny()
+                .orElseThrow();
+    }
+
 }

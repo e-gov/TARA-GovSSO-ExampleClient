@@ -21,7 +21,8 @@
     <div>
         <ul class=" navbar-nav px-3">
             <li class="nav-item text-nowrap">
-                <a id="loginUrl" class="btn btn-primary" role="button" href="/oauth2/authorization/govsso">Log in</a>
+                <a id="loginUrl" class="btn btn-primary" role="button"
+                   th:href="'/oauth2/authorization/' + ${authentication_provider}">Log in</a>
             </li>
         </ul>
     </div>
