@@ -45,14 +45,16 @@ public class TaraAuthorizationRequestResolver implements OAuth2AuthorizationRequ
             throw new IllegalArgumentException(
                     TaraAuthorizationRequestResolver.class.getName() + " only supports TARA");
         }
-        OAuth2AuthorizationRequest authorizationRequest = requestResolver.resolve(httpServletRequest, clientRegistrationId);
+        OAuth2AuthorizationRequest authorizationRequest =
+                requestResolver.resolve(httpServletRequest, clientRegistrationId);
         if (authorizationRequest == null) {
             return null;
         }
         return customAuthorizationRequest(authorizationRequest, httpServletRequest);
     }
 
-    private OAuth2AuthorizationRequest customAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest httpServletRequest) {
+    private OAuth2AuthorizationRequest customAuthorizationRequest(
+            OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest httpServletRequest) {
         Map<String, Object> additionalParameters = new LinkedHashMap<>(authorizationRequest.getAdditionalParameters());
 
         String locale = httpServletRequest.getParameter("locale");

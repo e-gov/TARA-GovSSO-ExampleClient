@@ -46,7 +46,6 @@ public class ClientController {
             ModelAndView model = new ModelAndView("loginView");
             model.addObject("application_name", applicationName);
             model.addObject("application_logo", applicationLogo);
-
             model.addObject("authentication_provider", getAuthenticationProvider());
             model.addObject("show_post_logout_message", showPostLogoutMessage != null);
             return model;
@@ -61,10 +60,10 @@ public class ClientController {
         ModelAndView model = new ModelAndView("dashboard");
         model.addObject("application_name", applicationName);
         model.addObject("application_logo", applicationLogo);
+        model.addObject("authentication_provider", getAuthenticationProvider());
 
         model.addObject("exampleClientUser", exampleClientUser);
         model.addObject("allowed_idle_time", sessionProperties.idleTimeout().toSeconds());
-        model.addObject("authentication_provider", getAuthenticationProvider());
 
         log.info("Showing dashboard for subject='{}'", oidcUser.getSubject());
         addIdTokenDataToModel(oidcUser, model);
