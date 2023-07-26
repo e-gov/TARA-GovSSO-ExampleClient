@@ -4,15 +4,17 @@ import ee.ria.govsso.client.configuration.ExampleClientSessionExpirationAuthenti
 import ee.ria.govsso.client.configuration.ExampleClientSessionProperties;
 import ee.ria.govsso.client.configuration.SecurityConstants;
 import ee.ria.govsso.client.filter.ExampleClientSessionExpirationFilter;
-import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
-import ee.ria.govsso.client.govsso.filter.GovssoSessionExpirationFilter;
 import ee.ria.govsso.client.govsso.configuration.authentication.GovssoAuthentication;
 import ee.ria.govsso.client.govsso.configuration.authentication.GovssoExampleClientUserFactory;
+import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
 import ee.ria.govsso.client.govsso.filter.GovssoRefreshTokenFilter;
+import ee.ria.govsso.client.govsso.filter.GovssoSessionExpirationFilter;
 import ee.ria.govsso.client.govsso.filter.OidcBackChannelLogoutFilter;
 import ee.ria.govsso.client.govsso.oauth2.GovssoAuthorizationRequestResolver;
 import ee.ria.govsso.client.govsso.oauth2.GovssoClientInitiatedLogoutSuccessHandler;
 import ee.ria.govsso.client.govsso.oauth2.GovssoLocalePassingLogoutHandler;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,10 +46,9 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
 import org.springframework.security.web.session.SessionManagementFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.client.RestOperations;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
@@ -78,72 +79,70 @@ public class GovssoSecurityConfiguration {
             ExampleClientSessionProperties sessionProperties,
             Clock clock) throws Exception {
         // @formatter:off
+        //noinspection Convert2MethodRef
         http
-                .requestCache()
-                    .requestCache(httpSessionRequestCache())
-                    .and()
-                .authorizeHttpRequests()
-                    .antMatchers(
-                            "/", "/assets/*", "/webjars/**", "/styles/*", "/scripts/*", "/actuator/**")
-                        .permitAll()
-                    .requestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
-                        .permitAll()
-                    .anyRequest()
-                        .authenticated()
-                    .and()
-                .csrf()
-                    .ignoringRequestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
-                    .csrfTokenRepository(csrfTokenRepository())
-                    .and()
-                .headers()
-                    .xssProtection().disable()
-                    .frameOptions().deny()
-                    .contentSecurityPolicy(SecurityConstants.CONTENT_SECURITY_POLICY)
-                        .and()
-                    .httpStrictTransportSecurity()
-                    .maxAgeInSeconds(Duration.ofDays(186).toSeconds())
-                        .and()
-                    .and()
-                .oauth2Login()
-                    .withObjectPostProcessor(new SetAuthenticationResultConverter(govssoExampleClientUserFactory))
-                    .userInfoEndpoint()
-                        .oidcUserService(userService)
-                        .and()
-                    .authorizationEndpoint()
-                        .authorizationRequestResolver(
-                                new GovssoAuthorizationRequestResolver(clientRegistrationRepository))
-                        .and()
-                    .tokenEndpoint()
-                        .accessTokenResponseClient(createAccessTokenResponseClient(govssoRestOperations))
-                        .and()
-                    .defaultSuccessUrl("/dashboard")
-                    .failureHandler(getAuthFailureHandler())
-                    .and()
+                .requestCache(requestCache -> requestCache
+                        .requestCache(httpSessionRequestCache()))
+                .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+                        .requestMatchers(
+                                new AntPathRequestMatcher("/"),
+                                new AntPathRequestMatcher("/assets/*"),
+                                new AntPathRequestMatcher("/webjars/*"),
+                                new AntPathRequestMatcher("/scripts/*"),
+                                new AntPathRequestMatcher("/actuator/**"))
+                            .permitAll()
+                        .requestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
+                            .permitAll()
+                        .anyRequest()
+                            .authenticated())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
+                        .csrfTokenRepository(csrfTokenRepository()))
+                .headers(headers -> headers
+                        .xssProtection(xssProtection -> xssProtection
+                                .disable())
+                        .frameOptions(frameOptions -> frameOptions
+                                .deny())
+                        .contentSecurityPolicy(contentSecurityPolicy -> contentSecurityPolicy
+                                .policyDirectives(SecurityConstants.CONTENT_SECURITY_POLICY))
+                        .httpStrictTransportSecurity(httpStrictTransportSecurity -> httpStrictTransportSecurity
+                                .maxAgeInSeconds(Duration.ofDays(186).toSeconds())))
+                .oauth2Login(oauth2Login -> oauth2Login
+                        .withObjectPostProcessor(new SetAuthenticationResultConverter(govssoExampleClientUserFactory))
+                        .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+                            .oidcUserService(userService))
+                        .authorizationEndpoint(authorizationEndpoint -> authorizationEndpoint
+                            .authorizationRequestResolver(
+                                    new GovssoAuthorizationRequestResolver(clientRegistrationRepository)))
+                        .tokenEndpoint(tokenEndpoint -> tokenEndpoint
+                            .accessTokenResponseClient(createAccessTokenResponseClient(govssoRestOperations)))
+                        .defaultSuccessUrl("/dashboard")
+                        .failureHandler(getAuthFailureHandler()))
                 .logout(logoutConfigurer -> {
-                    logoutConfigurer.logoutUrl("/oauth/logout");
-                    /*
-                        Using custom handlers to pass ui_locales parameter to GovSSO logout flow.
-                    */
-                    logoutConfigurer
-                            .logoutSuccessHandler(new GovssoClientInitiatedLogoutSuccessHandler(
-                                    clientRegistrationRepository, govssoProperties.postLogoutRedirectUri()))
-                            .getLogoutHandlers().add(0, new GovssoLocalePassingLogoutHandler());
+                        logoutConfigurer.logoutUrl("/oauth/logout");
+                        /*
+                            Using custom handlers to pass ui_locales parameter to GovSSO logout flow.
+                        */
+                        logoutConfigurer
+                                .logoutSuccessHandler(new GovssoClientInitiatedLogoutSuccessHandler(
+                                        clientRegistrationRepository, govssoProperties.postLogoutRedirectUri()))
+                                .getLogoutHandlers().add(0, new GovssoLocalePassingLogoutHandler());
                 })
-                .sessionManagement()
-                     /*
-                      * `.maximumSessions(...)` should always be configured as that makes sure a
-                      * `ConcurrentSessionFilter` is created, which is required for our back-channel logout
-                      * implementation to work. Without `ConcurrentSessionFilter`, expiring sessions from
-                      * `SessionRegistry` would have no effect.
-                      */
-                    .sessionAuthenticationStrategy(
-                            new CompositeSessionAuthenticationStrategy(List.of(
-                                    new ChangeSessionIdAuthenticationStrategy(),
-                                    new ExampleClientSessionExpirationAuthenticationStrategy(sessionProperties, clock)
-                            ))
-                    )
-                    .maximumSessions(-1)
-                    .expiredUrl("/?error=expired_session");
+                .sessionManagement(sessionManagement -> sessionManagement
+                         /*
+                          * `.maximumSessions(...)` should always be configured as that makes sure a
+                          * `ConcurrentSessionFilter` is created, which is required for our back-channel logout
+                          * implementation to work. Without `ConcurrentSessionFilter`, expiring sessions from
+                          * `SessionRegistry` would have no effect.
+                          */
+                        .sessionAuthenticationStrategy(
+                                new CompositeSessionAuthenticationStrategy(List.of(
+                                        new ChangeSessionIdAuthenticationStrategy(),
+                                        new ExampleClientSessionExpirationAuthenticationStrategy(sessionProperties, clock)
+                                ))
+                        )
+                        .maximumSessions(-1)
+                        .expiredUrl("/?error=expired_session"));
         // @formatter:on
 
         ExampleClientSessionExpirationFilter exampleClientSessionExpirationFilter =

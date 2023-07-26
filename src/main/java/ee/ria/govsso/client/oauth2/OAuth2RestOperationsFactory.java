@@ -1,9 +1,11 @@
 package ee.ria.govsso.client.oauth2;
 
 import lombok.experimental.UtilityClass;
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -21,10 +23,9 @@ import java.util.stream.Stream;
 public class OAuth2RestOperationsFactory {
 
     public static RestOperations create(SSLContext sslContext) {
-        SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext);
         @SuppressWarnings("resource")
         HttpClient httpClient = HttpClients.custom()
-                .setSSLSocketFactory(socketFactory)
+                .setConnectionManager(createConnectionManager(sslContext))
                 .build();
         RestTemplate restTemplate = new RestTemplateBuilder()
                 .requestFactory(() -> new HttpComponentsClientHttpRequestFactory(httpClient))
@@ -36,6 +37,14 @@ public class OAuth2RestOperationsFactory {
         );
         addMessageConverters(restTemplate, additionalMessageConverters);
         return restTemplate;
+    }
+
+    private static HttpClientConnectionManager createConnectionManager(SSLContext sslContext) {
+        return PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+                        .setSslContext(sslContext)
+                        .build())
+                .build();
     }
 
     private static void addMessageConverters(

@@ -35,7 +35,6 @@ govsso:
   client-id: client-a
   client-secret: secreta
   redirect-uri: 'https://clienta.localhost:11443/login/oauth2/code/govsso'
-  scope: openid
   issuer-uri: https://inproxy.localhost:13443/
   trust-store: classpath:clienta.localhost.govsso.truststore.p12
   trust-store-password: changeit
@@ -45,7 +44,6 @@ tara:
   client-id: client-a
   client-secret: secreta
   redirect-uri: 'https://clienta.localhost:11443/login/oauth2/code/tara'
-  scope: openid
   issuer-uri: https://tara.localhost:16443
   trust-store: classpath:clienta.localhost.tara.truststore.p12
   trust-store-password: changeit

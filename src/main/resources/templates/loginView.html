@@ -31,7 +31,7 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
         <div class="container">
-            <div th:if="${#request.getParameter('show-post-logout-message')}" class="alert alert-info" role="alert"
+            <div th:if="${show_post_logout_message}" class="alert alert-info" role="alert"
                  th:text="'You have been logged out from ' + ${application_name}">
             </div>
             <div th:if="${param.error}" th:switch="${param.error[0]}">

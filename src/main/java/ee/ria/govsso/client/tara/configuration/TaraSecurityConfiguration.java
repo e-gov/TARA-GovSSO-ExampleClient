@@ -8,6 +8,8 @@ import ee.ria.govsso.client.tara.configuration.authentication.TaraAuthentication
 import ee.ria.govsso.client.tara.configuration.authentication.TaraExampleClientUserFactory;
 import ee.ria.govsso.client.tara.configuration.condition.ConditionalOnTara;
 import ee.ria.govsso.client.tara.oauth2.TaraAuthorizationRequestResolver;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,10 +39,9 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.client.RestOperations;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
@@ -66,55 +67,52 @@ public class TaraSecurityConfiguration {
             ExampleClientSessionProperties sessionProperties,
             Clock clock) throws Exception {
         // @formatter:off
+        //noinspection Convert2MethodRef
         http
-                .requestCache()
-                    .requestCache(httpSessionRequestCache())
-                    .and()
-                .authorizeHttpRequests()
-                    .antMatchers(
-                            "/", "/assets/*", "/scripts/*", "/actuator/**")
-                        .permitAll()
-                    .anyRequest()
-                        .authenticated()
-                    .and()
-                .csrf()
-                    .csrfTokenRepository(csrfTokenRepository())
-                    .and()
-                .headers()
-                    .xssProtection().disable()
-                    .frameOptions().deny()
-                    .contentSecurityPolicy(SecurityConstants.CONTENT_SECURITY_POLICY)
-                        /*
-                         *  Prevents browser from blocking functionality if views do not meet CSP requirements.
-                         *  Problems are still displayed at browser console.
-                         *  TODO: Remove this once given problems are fixed.
-                         */
-                        .reportOnly()
-                        .and()
-                    .httpStrictTransportSecurity()
-                    .maxAgeInSeconds(Duration.ofDays(186).toSeconds())
-                        .and()
-                    .and()
-                .oauth2Login()
-                    .withObjectPostProcessor(new SetAuthenticationResultConverter(exampleClientUserFactory))
-                    .userInfoEndpoint()
-                        .oidcUserService(userService)
-                        .and()
-                    .authorizationEndpoint()
-                        .authorizationRequestResolver(
-                                new TaraAuthorizationRequestResolver(clientRegistrationRepository))
-                        .and()
-                    .tokenEndpoint()
-                        .accessTokenResponseClient(createAccessTokenResponseClient(taraRestOperations))
-                        .and()
+                .requestCache(requestCache -> requestCache
+                        .requestCache(httpSessionRequestCache()))
+                .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+                        .requestMatchers(
+                                new AntPathRequestMatcher("/"),
+                                new AntPathRequestMatcher("/assets/*"),
+                                new AntPathRequestMatcher("/scripts/*"),
+                                new AntPathRequestMatcher("/scripts/*"))
+                            .permitAll()
+                        .anyRequest()
+                            .authenticated())
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(csrfTokenRepository()))
+                .headers(headers -> headers
+                        .xssProtection(xssProtection -> xssProtection
+                                .disable())
+                        .frameOptions(frameOptions -> frameOptions
+                                .deny())
+                        .contentSecurityPolicy(contentSecurityPolicy -> contentSecurityPolicy
+                                .policyDirectives(SecurityConstants.CONTENT_SECURITY_POLICY)
+                                /*
+                                 *  Prevents browser from blocking functionality if views do not meet CSP requirements.
+                                 *  Problems are still displayed at browser console.
+                                 *  TODO: Remove this once given problems are fixed.
+                                 */
+                                .reportOnly())
+                        .httpStrictTransportSecurity(httpStrictTransportSecurity -> httpStrictTransportSecurity
+                                .maxAgeInSeconds(Duration.ofDays(186).toSeconds())))
+                .oauth2Login(oauth2Login -> oauth2Login
+                        .withObjectPostProcessor(new SetAuthenticationResultConverter(exampleClientUserFactory))
+                        .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+                                .oidcUserService(userService))
+                        .authorizationEndpoint(authorizationEndpoint -> authorizationEndpoint
+                                .authorizationRequestResolver(
+                                    new TaraAuthorizationRequestResolver(clientRegistrationRepository)))
+                        .tokenEndpoint(tokenEndpoint -> tokenEndpoint
+                                .accessTokenResponseClient(createAccessTokenResponseClient(taraRestOperations)))
                     .defaultSuccessUrl("/dashboard")
-                    .failureHandler(getAuthFailureHandler())
-                    .and()
+                    .failureHandler(getAuthFailureHandler()))
                 .logout(logoutConfigurer -> {
                     logoutConfigurer.logoutUrl("/oauth/logout");
                     logoutConfigurer.logoutSuccessUrl("/?show-post-logout-message");
                 })
-                .sessionManagement()
+                .sessionManagement(sessionManagement -> sessionManagement
                      /*
                       * `.maximumSessions(...)` should always be configured as that makes sure a
                       * `ConcurrentSessionFilter` is created, which is required for our back-channel logout
@@ -128,7 +126,7 @@ public class TaraSecurityConfiguration {
                             ))
                     )
                     .maximumSessions(-1)
-                    .expiredUrl("/?error=expired_session");
+                    .expiredUrl("/?error=expired_session"));
         // @formatter:on
 
         ExampleClientSessionExpirationFilter exampleClientSessionExpirationFilter =

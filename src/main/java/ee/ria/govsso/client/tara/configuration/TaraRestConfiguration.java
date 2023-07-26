@@ -2,7 +2,7 @@ package ee.ria.govsso.client.tara.configuration;
 
 import ee.ria.govsso.client.oauth2.OAuth2RestOperationsFactory;
 import ee.ria.govsso.client.tara.configuration.condition.ConditionalOnTara;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestOperations;
@@ -28,7 +28,7 @@ public class TaraRestConfiguration {
 
     private static SSLContext createSslContext(TaraProperties properties)
             throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, IOException {
-        return new SSLContextBuilder()
+        return SSLContextBuilder.create()
                 .loadTrustMaterial(
                         properties.trustStore().getURL(),
                         properties.trustStorePassword().toCharArray())

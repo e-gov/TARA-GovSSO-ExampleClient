@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.core.oidc.OidcScopes;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -39,6 +40,9 @@ public class GovssoClientRegistrationFactory {
                 .userNameAttributeName(IdTokenClaimNames.SUB)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                /* While we override scopes for each authorization request in `GovssoAuthorizationRequestResolver`,
+                 * `openid` scope needs to be defined here for spring to generate a nonce. */
+                .scope(OidcScopes.OPENID)
                 .authorizationUri(requireNonNull(metadata.getAuthorizationEndpointURI()).toASCIIString())
                 .tokenUri(requireNonNull(metadata.getTokenEndpointURI()).toASCIIString())
                 .jwkSetUri(requireNonNull(metadata.getJWKSetURI()).toASCIIString())
@@ -46,7 +50,6 @@ public class GovssoClientRegistrationFactory {
                 .issuerUri(issuer)
                 .clientId(properties.clientId())
                 .clientSecret(properties.clientSecret())
-                .scope(properties.scope())
                 .redirectUri(properties.redirectUri())
                 .build();
     }

@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.LinkedHashMap;
@@ -37,7 +38,9 @@ public class ClientController {
     private String applicationLogo;
 
     @GetMapping(value = LOGIN_VIEW_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
-    public ModelAndView clientLoginView(@AuthenticationPrincipal OidcUser oidcUser) {
+    public ModelAndView clientLoginView(
+            @AuthenticationPrincipal OidcUser oidcUser,
+            @RequestParam(name = "show-post-logout-message", required = false) String showPostLogoutMessage) {
         if (oidcUser == null) {
             log.info("Unauthenticated user detected. Showing index page.");
             ModelAndView model = new ModelAndView("loginView");
@@ -45,6 +48,7 @@ public class ClientController {
             model.addObject("application_logo", applicationLogo);
 
             model.addObject("authentication_provider", getAuthenticationProvider());
+            model.addObject("show_post_logout_message", showPostLogoutMessage != null);
             return model;
         } else {
             log.info("User has been authenticated, redirecting browser to dashboard. subject='{}'", oidcUser.getSubject());

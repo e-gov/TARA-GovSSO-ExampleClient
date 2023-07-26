@@ -2,7 +2,7 @@ package ee.ria.govsso.client.govsso.configuration;
 
 import ee.ria.govsso.client.govsso.configuration.condition.ConditionalOnGovsso;
 import ee.ria.govsso.client.oauth2.OAuth2RestOperationsFactory;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestOperations;
@@ -26,9 +26,9 @@ public class GovssoRestConfiguration {
         return OAuth2RestOperationsFactory.create(sslContext);
     }
 
-    private static SSLContext createSslContext(GovssoProperties properties)
+    private SSLContext createSslContext(GovssoProperties properties)
             throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, IOException {
-        return new SSLContextBuilder()
+        return SSLContextBuilder.create()
                 .loadTrustMaterial(
                         properties.trustStore().getURL(),
                         properties.trustStorePassword().toCharArray())
