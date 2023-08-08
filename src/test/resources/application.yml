@@ -1,0 +1,47 @@
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: configprops,env,health,info
+  info:
+    os:
+      enabled: true
+    java:
+      enabled: true
+    git:
+      mode: full
+
+spring:
+  main:
+    banner-mode: off
+  application:
+    name: Client A
+
+govsso:
+  post-logout-redirect-uri: https://clienta.localhost:11443/?show-post-logout-message
+  client-id: client-a
+  client-secret: secreta
+  redirect-uri: 'https://clienta.localhost:11443/login/oauth2/code/govsso'
+  issuer-uri: https://inproxy.localhost:13442/
+  trust-store: classpath:clienta.localhost.govsso.truststore.p12
+  trust-store-password: changeit
+  minimum-loa: low # `low` is used to support all LoA values that can be selected on login view
+
+tara:
+  client-id: client-a
+  client-secret: secreta
+  redirect-uri: 'https://clienta.localhost:11443/login/oauth2/code/tara'
+  issuer-uri: https://tara.localhost:10000
+  trust-store: classpath:clienta.localhost.tara.truststore.p12
+  trust-store-password: changeit
+  minimum-loa: low # `low` is used to support all LoA values that can be selected on login view
+
+example-client:
+  logo: client-a.svg
+  session:
+    idle-timeout: PT1M

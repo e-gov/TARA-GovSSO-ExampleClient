@@ -1,0 +1,22 @@
+{
+  "acr": "high",
+  "amr": [
+    "mID"
+  ],
+  "at_hash": "rfitT-IgVZfCOGBGr5w5Ng",
+  "aud": [
+    "client-a"
+  ],
+  "auth_time": 1690891530,
+  "birthdate": "1961-07-12",
+  "exp": 2227435531,
+  "family_name": "Perekonnanimi3",
+  "given_name": "Eesnimi3",
+  "iat": 1690891531,
+  "iss": "https://inproxy.localhost:13442/",
+  "jti": "2b9c5178-1e3c-487a-90cd-402c7d490448",
+  "nonce": <nonce>,
+  "rat": 1690891526,
+  "sid": "9fe644fe-622a-4929-ada1-a92e4c57e5ef",
+  "sub": "Isikukood3"
+}
