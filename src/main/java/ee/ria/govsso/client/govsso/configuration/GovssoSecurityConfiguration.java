@@ -84,7 +84,7 @@ public class GovssoSecurityConfiguration {
                     .and()
                 .authorizeHttpRequests()
                     .antMatchers(
-                            "/", "/assets/*", "/scripts/*", "/actuator/**")
+                            "/", "/assets/*", "/webjars/**", "/styles/*", "/scripts/*", "/actuator/**")
                         .permitAll()
                     .requestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
                         .permitAll()
@@ -99,12 +99,6 @@ public class GovssoSecurityConfiguration {
                     .xssProtection().disable()
                     .frameOptions().deny()
                     .contentSecurityPolicy(SecurityConstants.CONTENT_SECURITY_POLICY)
-                        /*
-                         *  Prevents browser from blocking functionality if views do not meet CSP requirements.
-                         *  Problems are still displayed at browser console.
-                         *  TODO: Remove this once given problems are fixed.
-                         */
-                        .reportOnly()
                         .and()
                     .httpStrictTransportSecurity()
                     .maxAgeInSeconds(Duration.ofDays(186).toSeconds())

@@ -22,6 +22,7 @@ $(window).on('load', function() {
             localStorage.setItem('isChecked', 'false');
         }
     });
+    $('#updateButton').click(updateGovSsoSession);
 
     sessionLengthInSeconds = +$('#updateTimer').text();
     endTime = getCurrentTimeStampInSeconds() + sessionLengthInSeconds;
