@@ -6,13 +6,16 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.oidc.OidcScopes;
 
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static ee.ria.govsso.client.govsso.oauth2.GovssoLocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
 import static ee.ria.govsso.client.tara.configuration.TaraOidcConfiguration.TARA_REGISTRATION_ID;
@@ -54,7 +57,7 @@ public class TaraAuthorizationRequestResolver implements OAuth2AuthorizationRequ
 
         String locale = httpServletRequest.getParameter("locale");
         String acr = httpServletRequest.getParameter("acr");
-        String scopeParam = httpServletRequest.getParameter("scope");
+        Set<String> scopes = getScopes(httpServletRequest);
 
         /*
             OAuth2AuthorizationRequestRedirectFilter will create new session right after resolving
@@ -78,15 +81,16 @@ public class TaraAuthorizationRequestResolver implements OAuth2AuthorizationRequ
 
         return OAuth2AuthorizationRequest.from(authorizationRequest)
                 .additionalParameters(additionalParameters)
-                .scopes(createScopesSet(authorizationRequest.getScopes(), scopeParam))
+                .scopes(scopes)
                 .build();
     }
 
-    private Set<String> createScopesSet(Set<String> originalScopes, String additionalScope) {
-        Set<String> scopes = new HashSet<>(originalScopes);
-        if (additionalScope != null) {
-            scopes.add(additionalScope);
+    private Set<String> getScopes(HttpServletRequest httpServletRequest) {
+        String[] requestScopes = httpServletRequest.getParameterValues("scope");
+        if (requestScopes == null) {
+            return Set.of(OidcScopes.OPENID);
         }
-        return scopes;
+        return Stream.concat(Stream.of(OidcScopes.OPENID), Arrays.stream(requestScopes))
+                .collect(Collectors.toSet());
     }
 }
