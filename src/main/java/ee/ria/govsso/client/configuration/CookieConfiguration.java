@@ -5,10 +5,6 @@ import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/*
- NB! Following cookie settings do not work with standalone Tomcat and are configured
- in context.xml instead (look at webapp/META-INF/context.xml).
-*/
 @Configuration(proxyBeanMethods = false)
 public class CookieConfiguration {
 
@@ -28,9 +24,6 @@ public class CookieConfiguration {
      CSRF cookie is also passed with govsso.ria.ee authentication redirect, but it being 'SameSite=Strict'
      means browser will ignore it, resulting with spring regenerating it.
      Does not actually cause any issues but maybe consider turning it to 'Lax'.
-
-     NB! Since standalone Tomcat configuration changes session related cookies SameSite globally and
-     session cookie MUST be 'Lax', then it's SameSite is also 'Lax' in standalone Tomcat.
      */
     @Bean
     CookieSameSiteSupplier csrfCookieSameSiteSupplier() {

@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Context sessionCookieName="__Host-SESSION">
-    <!-- Changes all session cookies SameSite value. -->
-    <CookieProcessor sameSiteCookies="lax"/>
-</Context>
