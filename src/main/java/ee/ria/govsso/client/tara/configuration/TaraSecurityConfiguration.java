@@ -74,9 +74,11 @@ public class TaraSecurityConfiguration {
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                         .requestMatchers(
                                 new AntPathRequestMatcher("/"),
-                                new AntPathRequestMatcher("/assets/*"),
-                                new AntPathRequestMatcher("/scripts/*"),
-                                new AntPathRequestMatcher("/scripts/*"))
+                                new AntPathRequestMatcher("/assets/**"),
+                                new AntPathRequestMatcher("/webjars/**"),
+                                new AntPathRequestMatcher("/scripts/**"),
+                                new AntPathRequestMatcher("/styles/**"),
+                                new AntPathRequestMatcher("/actuator/**"))
                             .permitAll()
                         .anyRequest()
                             .authenticated())
@@ -88,13 +90,7 @@ public class TaraSecurityConfiguration {
                         .frameOptions(frameOptions -> frameOptions
                                 .deny())
                         .contentSecurityPolicy(contentSecurityPolicy -> contentSecurityPolicy
-                                .policyDirectives(SecurityConstants.CONTENT_SECURITY_POLICY)
-                                /*
-                                 *  Prevents browser from blocking functionality if views do not meet CSP requirements.
-                                 *  Problems are still displayed at browser console.
-                                 *  TODO: Remove this once given problems are fixed.
-                                 */
-                                .reportOnly())
+                                .policyDirectives(SecurityConstants.CONTENT_SECURITY_POLICY))
                         .httpStrictTransportSecurity(httpStrictTransportSecurity -> httpStrictTransportSecurity
                                 .maxAgeInSeconds(Duration.ofDays(186).toSeconds())))
                 .oauth2Login(oauth2Login -> oauth2Login

@@ -86,9 +86,10 @@ public class GovssoSecurityConfiguration {
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                         .requestMatchers(
                                 new AntPathRequestMatcher("/"),
-                                new AntPathRequestMatcher("/assets/*"),
-                                new AntPathRequestMatcher("/webjars/*"),
-                                new AntPathRequestMatcher("/scripts/*"),
+                                new AntPathRequestMatcher("/assets/**"),
+                                new AntPathRequestMatcher("/webjars/**"),
+                                new AntPathRequestMatcher("/scripts/**"),
+                                new AntPathRequestMatcher("/styles/**"),
                                 new AntPathRequestMatcher("/actuator/**"))
                             .permitAll()
                         .requestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
