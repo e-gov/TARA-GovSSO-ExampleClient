@@ -1,10 +1,11 @@
 <img src="src/main/resources/static/assets/eu_regional_development_fund_horizontal.jpg" width="350" height="200" alt="European Union European Regional Development Fund"/>
 
-# GovSSO Example Client
+# GovSSO/TARA Example Client
 
-Example client application that integrates with GovSSO service with protocol specified
-at https://e-gov.github.io/GOVSSO/TechnicalSpecification . Demonstrates authentication, session update, RP-initiated
-logout and back-channel logout flows.
+Example client application that integrates with GovSSO service using protocol specified
+at https://e-gov.github.io/GOVSSO/TechnicalSpecification and TARA service using protocol specified 
+at https://e-gov.github.io/TARA-Doku/TechnicalSpecification. Demonstrates authentication, session update, RP-initiated
+logout and back-channel logout flows (when applicable).
 
 ## Prerequisites
 
@@ -20,9 +21,10 @@ logout and back-channel logout flows.
 3. Add `127.0.0.1 inproxy.localhost` line to `hosts` file. This is needed only for requests originating from
    GOVSSO-Client when it's running locally (not in Docker Compose). It's not needed for web browsers as popular browsers
    already have built-in support for resolving `*.localhost` subdomains.
-4. Run
+4. Decide if you want to interface with GovSSO or TARA and choose the appropriate Spring profile in the next step.
+5. Run
    ```shell 
-   ./mvnw spring-boot:run
+   ./mvnw spring-boot:run -Dspring.profiles.active=<tara|govsso>
    ```
 
 ## Running in Docker
