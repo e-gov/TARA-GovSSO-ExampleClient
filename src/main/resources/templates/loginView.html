@@ -88,8 +88,8 @@
                             <label class="form-check-label" for="authScopeOpenid">
                                 openid
                             </label>
-                            <!-- Disabled fields are skipped when form is submitted but `openid` scope will always be
-                                 added the client backend -->
+                            <!-- Disabled fields are skipped when form is submitted but the client backend will ensure
+                                 that the `openid` scope is always included -->
                         </div>
                         <th:block th:if="${authentication_provider == 'tara'}">
                             <div class="form-check">
