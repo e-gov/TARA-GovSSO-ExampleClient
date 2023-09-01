@@ -14,6 +14,8 @@
     <property name="log.files.max.count" value="${LOG_FILES_MAX_COUNT:-31}"/>
     <property name="log.level.console" value="${LOG_CONSOLE_LEVEL:-INFO}"/>
     <property name="log.level.file" value="${LOG_FILE_LEVEL:-OFF}"/>
+    <property name="log.file.prefix" value="${LOG_FILE_PREFIX:-GovssoClient}"/>
+    <property name="log.service.type" value="${LOG_SERVICE_TYPE:-govsso}"/>
 
     <property name="log.console.pattern"
               value="${LOG_CONSOLE_PATTERN:-%d{yyyy-MM-dd'T'HH:mm:ss.SSS'Z',GMT} [${springAppName}] [%15.15t] %highlight(%-5level) %-40.40logger{39} %green(%marker) [%X{trace.id},%X{transaction.id}] -%X{remoteHost} -%msg%n}"/>
@@ -28,12 +30,12 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${log.files.dir}/GovssoClient.%d{yyyy-MM-dd,GMT}.log</file>
+        <file>${log.files.dir}/${log.file.prefix}.%d{yyyy-MM-dd,GMT}.log</file>
         <!-- Support multiple-JVM writing to the same log file -->
         <prudent>true</prudent>
         <append>true</append>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${log.files.dir}/GovssoClient.%d{yyyy-MM-dd,GMT}.log</fileNamePattern>
+            <fileNamePattern>${log.files.dir}/${log.file.prefix}.%d{yyyy-MM-dd,GMT}.log</fileNamePattern>
             <maxHistory>${log.files.max.count}</maxHistory>
         </rollingPolicy>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -57,7 +59,7 @@
                         "process.pid": "#asLong{%property{PID}}",
                         "process.thread.name": "%thread",
                         "service.name": "${springAppName}",
-                        "service.type": "govsso"
+                        "service.type": "${log.service.type}"
                         }
                     </pattern>
                 </pattern>
