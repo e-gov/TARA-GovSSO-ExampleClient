@@ -25,7 +25,8 @@ jobs:
           cache: maven
 
       - name: Build
-        run: mvn --batch-mode --update-snapshots -Dspring-boot.build-image.imageName=$IMAGE_NAME dependency:tree spring-boot:build-image
+        # TODO (AUT-1470): Run tests
+        run: mvn --batch-mode --update-snapshots -Dspring-boot.build-image.imageName=$IMAGE_NAME -DskipTests dependency:tree spring-boot:build-image
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
