@@ -34,10 +34,14 @@ public class ClientController {
     private final ExampleClientSessionProperties sessionProperties;
     private final Environment environment;
 
-    @Value("${spring.application.name}")
-    private String applicationName;
     @Value("${example-client.logo}")
     private String applicationLogo;
+    @Value("${example-client.messages.title}")
+    private String applicationTitle;
+    @Value("${example-client.messages.intro-long}")
+    private String applicationIntroLong;
+    @Value("${example-client.messages.info-service}")
+    private String applicationInfoService;
 
     @GetMapping(value = LOGIN_VIEW_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
     public ModelAndView clientLoginView(
@@ -46,7 +50,10 @@ public class ClientController {
         if (oidcUser == null) {
             log.info("Unauthenticated user detected. Showing index page.");
             ModelAndView model = new ModelAndView("loginView");
-            model.addObject("application_name", applicationName);
+
+            model.addObject("application_title", applicationTitle);
+            model.addObject("application_intro_long", applicationIntroLong);
+            model.addObject("application_info_service", applicationInfoService);
             model.addObject("application_logo", applicationLogo);
             model.addObject("authentication_provider", getAuthenticationProvider());
             model.addObject("show_post_logout_message", showPostLogoutMessage != null);
@@ -60,10 +67,9 @@ public class ClientController {
     @GetMapping(value = DASHBOARD_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
     public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser, ExampleClientUser exampleClientUser) {
         ModelAndView model = new ModelAndView("dashboard");
-        model.addObject("application_name", applicationName);
         model.addObject("application_logo", applicationLogo);
         model.addObject("authentication_provider", getAuthenticationProvider());
-
+        model.addObject("application_title", applicationTitle);
         model.addObject("exampleClientUser", exampleClientUser);
         model.addObject("allowed_idle_time", sessionProperties.idleTimeout().toSeconds());
 

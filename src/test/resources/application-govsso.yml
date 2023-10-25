@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: govsso-client
+example-client:
+  logo: client-a.svg
+  messages:
+    title: 'GovSSO Client A (LOCAL)'
+    intro-long: 'This client integrates with the GovSSO service and demonstrates all flows that a GovSSO client must implement (authentication, session update, logout, and back-channel logout).'
+    info-service: 'For more information about using the GovSSO service please read the <a rel="noopener" target="_blank" href="https://www.id.ee/en/article/authentication-in-e-services/">session management overview page</a>.'

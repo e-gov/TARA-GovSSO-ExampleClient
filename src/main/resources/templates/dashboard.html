@@ -11,14 +11,14 @@
     <meta th:name="_csrf_header" th:content="${_csrf.headerName}"/>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="/webjars/bootstrap/4.5.0/css/bootstrap.min.css">
-    <title th:text="${application_name} + ' - Dashboard'"></title>
+    <title th:text="${application_title} + ' - Dashboard'"></title>
 </head>
 <body>
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
     <a class="navbar-brand col-sm-3 col-md-2 m-2" href="dashboard">
         <img class="d-inline-block align-top" height="30" th:src="'/assets/' + ${application_logo}"
              width="30"/>&nbsp;<span
-            th:text="${application_name}"/>
+            th:text="${application_title}"/>
     </a>
     <ul class=" navbar-nav px-3">
         <li class="nav-item text-nowrap">
@@ -45,15 +45,18 @@
                 <div class="d-flex flex-column align-items-end">
                     <div>
                         Local session expires in
-                        <span th:id="idleTimer" th:text="${allowed_idle_time}"></span>s.
-                        Refresh the whole page to refresh the timer.
+                        <span th:id="idleTimer" th:text="${allowed_idle_time}"></span> seconds.
+                        Any page request will update local session.
                     </div>
                     <div th:if="${authentication_provider == 'govsso'}"
                          class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-2 mb-md-0">
-                        <div th:id="updateToggle"><input type="checkbox" id="autoUpdate" checked>GovSSO Session update in: </div>
-                        <div class="mx-2" th:id="updateTimer" th:text="${time_until_govsso_session_expiration_in_seconds - 120}"></div>
+                        <div th:id="updateToggle"><input type="checkbox" id="autoUpdate" checked>Automatic GovSSO session update in </div>
+                        <div class="mx-2">
+                            <span th:id="updateTimer" th:text="${time_until_govsso_session_expiration_in_seconds - 120}"></span>
+                            <span>seconds</span>
+                        </div>
                         <button th:id="updateButton" class="btn btn-sm btn-outline-secondary">
-                            Update session
+                            Update GovSSO session
                         </button>
                     </div>
                 </div>
@@ -66,7 +69,7 @@
             </div>
             <div th:id="error" class="alert alert-danger d-none" role="alert">
             </div>
-            <h3>Token Endpoint Response</h3>
+            <h2 class="h3">Token Endpoint Response</h2>
             <div class="table-responsive">
                 <table class="table table-striped table-sm">
                     <tbody>
@@ -78,7 +81,7 @@
                 </table>
             </div>
 
-            <h3>ID Token</h3>
+            <h2 class="h3">ID Token</h2>
             <div class="table-responsive">
                 <table class="table table-striped table-sm">
                     <thead>

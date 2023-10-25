@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: tara-client
+example-client:
+  logo: client-publicsector.svg
+  messages:
+    title: 'TARA Client (LOCAL)'
+    intro-long: 'This client integrates with the TARA service and demonstrates the authentication flow that a TARA client must implement.'
+    info-service: ''

@@ -19,8 +19,7 @@ management:
 spring:
   main:
     banner-mode: off
-  application:
-    name: Client A
+
 server:
   # Use same port as govsso-session/docker-compose.yml.
   port: 11443
@@ -50,6 +49,5 @@ tara:
   minimum-loa: low # `low` is used to support all LoA values that can be selected on login view
 
 example-client:
-  logo: client-a.svg
   session:
     idle-timeout: PT40M

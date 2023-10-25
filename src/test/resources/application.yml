@@ -19,8 +19,6 @@ management:
 spring:
   main:
     banner-mode: off
-  application:
-    name: Client A
 
 govsso:
   post-logout-redirect-uri: https://clienta.localhost:11443/?show-post-logout-message

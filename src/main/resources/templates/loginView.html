@@ -9,14 +9,14 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="/webjars/bootstrap/4.5.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="/styles/loginView.css">
-    <title th:text="${application_name}"></title>
+    <title th:text="${application_title}"></title>
 </head>
 <body>
 <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
-    <a class="navbar-brand col-sm-3 col-md-2 m-2" href="dashboard">
+    <a class="navbar-brand col-sm-3 col-md-2 m-2" href="/">
         <img class="d-inline-block align-top" height="30" th:src="'/assets/' + ${application_logo}"
              width="30"/>&nbsp;<span
-            th:text="${application_name}"/>
+            th:text="${application_title}"/>
     </a>
     <div>
         <ul class=" navbar-nav px-3">
@@ -31,7 +31,7 @@
     <div class="jumbotron">
         <div class="container">
             <div th:if="${show_post_logout_message}" class="alert alert-info" role="alert"
-                 th:text="'You have been logged out from ' + ${application_name}">
+                 th:text="'You have been logged out from ' + ${application_title}">
             </div>
             <div th:if="${param.error}" th:switch="${param.error[0]}">
                 <div class="alert alert-danger" role="alert" th:case="invalid_session">
@@ -47,123 +47,138 @@
                     Error during authentication!
                 </div>
             </div>
-            <h1 class="display-3" th:text="${application_name} + ' e-service'">Welcome!</h1>
-            <p>Welcome to our e-service! </p>
-            <p>To access your dashboard, please log in.</p>
-            <br>
-            <h2>Authentication request parameters</h2>
-            <form id="authForm" method="get" th:action="@{'/oauth2/authorization/' + ${authentication_provider}}">
-                <div class="form-group row">
-                    <label for="authLocale" class="col-sm-2 col-form-label">Locale</label>
-                    <div class="col-sm-10 form-row">
-                        <div class="col-sm-3">
-                            <select id="authLocale" name="locale" class="form-control">
-                                <option value="">(none)</option>
-                                <option value="et">et</option>
-                                <option value="en">en</option>
-                                <option value="ru">ru</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="authAcr" class="col-sm-2 col-form-label">ACR</label>
-                    <div class="col-sm-10 form-row">
-                        <div class="col-sm-3">
-                            <select id="authAcr" name="acr" class="form-control">
-                                <option value="">(none)</option>
-                                <option value="low">low</option>
-                                <option value="substantial">substantial</option>
-                                <option value="high">high</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label class="col-sm-2 col-form-label">Scopes</label>
-                    <div class="col-sm-10">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" checked disabled id="authScopeOpenid"
-                                   name="scope" value="openid"/>
-                            <label class="form-check-label" for="authScopeOpenid">
-                                openid
-                            </label>
-                            <!-- Disabled fields are skipped when form is submitted but the client backend will ensure
-                                 that the `openid` scope is always included -->
-                        </div>
-                        <th:block th:if="${authentication_provider == 'tara'}">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="authScopeIdcard"
-                                       name="scope" value="idcard"/>
-                                <label class="form-check-label" for="authScopeIdcard">
-                                    idcard
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="authScopeMid"
-                                       name="scope" value="mid"/>
-                                <label class="form-check-label" for="authScopeMid">
-                                    mid
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="authScopeSmartid"
-                                       name="scope" value="smartid"/>
-                                <label class="form-check-label" for="authScopeSmartid">
-                                    smartid
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="authScopeEidas"
-                                       name="scope" value="eidas"/>
-                                <label class="form-check-label" for="authScopeEidas">
-                                    eidas
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="authScopeEidasonly"
-                                       name="scope" value="eidasonly"/>
-                                <label class="form-check-label" for="authScopeEidasonly">
-                                    eidasonly
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="authScopeEmail"
-                                       name="scope" value="email"/>
-                                <label class="form-check-label" for="authScopeEmail">
-                                    email
-                                </label>
-                            </div>
-                        </th:block>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="authScopePhone"
-                                   name="scope" value="phone"/>
-                            <label class="form-check-label" for="authScopePhone">
-                                phone
-                            </label>
-                        </div>
-                        <div class="form-row">
+
+            <th:block th:if="${authentication_provider == 'govsso'}">
+                <h5>This is an example client for the State SSO service (GovSSO) for demonstration and testing purposes.</h5>
+            </th:block>
+            <th:block th:if="${authentication_provider == 'tara'}">
+                <h5>This is an example client for the State authentication service (TARA) for demonstration and testing purposes.</h5>
+            </th:block>
+            <p th:text="${application_intro_long}"></p>
+            <div class="dotted-line p-3">
+                <h4>Authentication Request</h4>
+                <p>Before clicking "<b>Log in</b>", you may specify the following authentication parameters:</p>
+                <form id="authForm" method="get" th:action="@{'/oauth2/authorization/' + ${authentication_provider}}">
+                    <div class="form-group row">
+                        <label for="authLocale" class="col-sm-2 col-form-label">Locale</label>
+                        <div class="col-sm-10 form-row">
                             <div class="col-sm-3">
-                                <input class="form-control form-control-sm" type="text" id="authScopeCustom"
-                                       name="scope"/>
+                                <select id="authLocale" name="locale" class="form-control">
+                                    <option value="">(none)</option>
+                                    <option value="et">et</option>
+                                    <option value="en">en</option>
+                                    <option value="ru">ru</option>
+                                </select>
                             </div>
-                            <label class="col col-form-label col-form-label-sm" for="authScopeCustom">
-                                <th:block th:if="${authentication_provider == 'tara'}">
-                                    custom value, for example <code>eidas:country:ca</code>
-                                </th:block>
-                                <th:block th:if="${authentication_provider == 'govsso'}">
-                                    custom value
-                                </th:block>
-                            </label>
                         </div>
                     </div>
-                </div>
-            </form>
+                    <div class="form-group row">
+                        <label for="authAcr" class="col-sm-2 col-form-label">ACR (eIDAS level of assurance)</label>
+                        <div class="col-sm-10 form-row">
+                            <div class="col-sm-3">
+                                <select id="authAcr" name="acr" class="form-control">
+                                    <option value="">(none)</option>
+                                    <option value="low">low</option>
+                                    <option value="substantial">substantial</option>
+                                    <option value="high">high</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">Scopes</label>
+                        <div class="col-sm-10">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked disabled id="authScopeOpenid"
+                                       name="scope" value="openid"/>
+                                <label class="form-check-label" for="authScopeOpenid">
+                                    openid
+                                </label>
+                                <!-- Disabled fields are skipped when form is submitted but the client backend will ensure
+                                     that the `openid` scope is always included -->
+                            </div>
+                            <th:block th:if="${authentication_provider == 'tara'}">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="authScopeIdcard"
+                                           name="scope" value="idcard"/>
+                                    <label class="form-check-label" for="authScopeIdcard">
+                                        idcard
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="authScopeMid"
+                                           name="scope" value="mid"/>
+                                    <label class="form-check-label" for="authScopeMid">
+                                        mid
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="authScopeSmartid"
+                                           name="scope" value="smartid"/>
+                                    <label class="form-check-label" for="authScopeSmartid">
+                                        smartid
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="authScopeEidas"
+                                           name="scope" value="eidas"/>
+                                    <label class="form-check-label" for="authScopeEidas">
+                                        eidas
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="authScopeEidasonly"
+                                           name="scope" value="eidasonly"/>
+                                    <label class="form-check-label" for="authScopeEidasonly">
+                                        eidasonly
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="authScopeEmail"
+                                           name="scope" value="email"/>
+                                    <label class="form-check-label" for="authScopeEmail">
+                                        email
+                                    </label>
+                                </div>
+                            </th:block>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="authScopePhone"
+                                       name="scope" value="phone"/>
+                                <label class="form-check-label" for="authScopePhone">
+                                    phone
+                                </label>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-sm-3">
+                                    <input class="form-control form-control-sm" type="text" id="authScopeCustom"
+                                           name="scope"/>
+                                </div>
+                                <label class="col col-form-label col-form-label-sm" for="authScopeCustom">
+                                    <th:block th:if="${authentication_provider == 'tara'}">
+                                        custom value, for example <code>eidas:country:ca</code>
+                                    </th:block>
+                                    <th:block th:if="${authentication_provider == 'govsso'}">
+                                        custom value
+                                    </th:block>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <br>
+            <p th:if="${application_info_service != ''}" th:utext="${application_info_service}"></p>
+            <th:block th:if="${authentication_provider == 'govsso'}">
+                <p>For more information about integrating with the GovSSO service please read the <a rel="noopener" target="_blank" href="https://www.ria.ee/en/state-information-system/electronic-identity-eid-and-trust-services/central-authentication-services#govsso">State SSO service web page</a> and the <a rel="noopener" target="_blank" href="https://e-gov.github.io/GOVSSO/">service documentation</a>.</p>
+            </th:block>
+            <th:block th:if="${authentication_provider == 'tara'}">
+                <p>For more information about integrating with the TARA service please read the <a rel="noopener" target="_blank" href="https://www.ria.ee/en/state-information-system/electronic-identity-eid-and-trust-services/central-authentication-services#tara">State authentication service web page</a> and the <a rel="noopener" target="_blank" href="https://e-gov.github.io/TARA-Doku/">service documentation</a>.</p>
+            </th:block>
         </div>
     </div>
 </main>
-<footer class="my-5 pt-5 text-muted text-center text-small fixed-bottom below-other-elements">
-    <p class="mb-1"><img src="/assets/eu_regional_development_fund_horizontal.jpg" width="100px"></p>
+<footer class="my-4 text-muted text-center text-small below-other-elements">
+    <p class="mb-1"><img src="/assets/eu_regional_development_fund_horizontal.jpg" width="200px"></p>
 </footer>
 <script src="/webjars/jquery/3.5.1/jquery.slim.min.js"></script>
 <script src="/webjars/popper.js/1.16.0/umd/popper.min.js"></script>
