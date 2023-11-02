@@ -66,7 +66,7 @@
                                 <select id="authLocale" name="locale" class="form-control">
                                     <option value="">(none)</option>
                                     <option value="et">et</option>
-                                    <option value="en">en</option>
+                                    <option value="en" selected>en</option>
                                     <option value="ru">ru</option>
                                 </select>
                             </div>
@@ -79,8 +79,8 @@
                                 <select id="authAcr" name="acr" class="form-control">
                                     <option value="">(none)</option>
                                     <option value="low">low</option>
-                                    <option value="substantial">substantial</option>
-                                    <option value="high">high</option>
+                                    <option value="substantial" th:selected="${authentication_provider == 'tara'}">substantial</option>
+                                    <option value="high" th:selected="${authentication_provider == 'govsso'}">high</option>
                                 </select>
                             </div>
                         </div>
