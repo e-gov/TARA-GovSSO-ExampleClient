@@ -12,7 +12,7 @@
 
     <groupId>ee.ria.govsso</groupId>
     <artifactId>govsso-client</artifactId>
-    <version>0.7.0</version>
+    <version>0.7.1</version>
 
     <name>GovSSO Example Client</name>
     <licenses>
