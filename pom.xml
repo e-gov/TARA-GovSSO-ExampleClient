@@ -6,7 +6,8 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.5</version>
+        <!-- TODO AUT-1559 Upgrade to Spring Boot 3.2 -->
+        <version>3.1.6</version>
         <relativePath/><!-- Lookup parent from repository. -->
     </parent>
 
