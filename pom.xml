@@ -7,7 +7,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <!-- TODO AUT-1559 Upgrade to Spring Boot 3.2 -->
-        <version>3.1.6</version>
+        <version>3.1.8</version>
         <relativePath/><!-- Lookup parent from repository. -->
     </parent>
 
@@ -31,8 +31,8 @@
         <spring-boot.build-image.imageName>${project.artifactId}:latest</spring-boot.build-image.imageName><!-- Use "latest" tag instead of version tag. -->
 
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
-        <bootstrap.version>4.5.0</bootstrap.version> <!-- TODO AUT-1499 update to version 5.x.x -->
-        <wiremock.version>3.0.1</wiremock.version>
+        <bootstrap.version>4.6.2</bootstrap.version> <!-- TODO AUT-1499 update to version 5.x.x -->
+        <wiremock.version>3.3.1</wiremock.version>
     </properties>
 
     <dependencies><!-- Ordered by scope, groupId, artifactId. -->
@@ -89,8 +89,8 @@
             <version>${bootstrap.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8</artifactId>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock</artifactId>
             <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
