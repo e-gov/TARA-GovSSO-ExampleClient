@@ -18,7 +18,7 @@ of [example clients integrated with `govsso-demo.ria.ee`](https://e-gov.github.i
 * [https://govsso-demo-client-b.id.ee/](https://govsso-demo-client-b.id.ee/)
 
 Example client in GovSSO mode can also be used with GovSSO mock. Visit https://github.com/e-gov/GOVSSO-Mock for more
-information (including out-of-the-box deployment with Docker Compose).
+information.
 
 **For TARA** demonstration and testing purposes, there are two publicly accessible deployments
 of [example clients integrated with `tara-test.ria.ee`](https://e-gov.github.io/TARA-Doku/Demo):
@@ -38,36 +38,20 @@ production.
 
 ## Prerequisites
 
-* Java 17 JDK
+* Docker Engine
+* Docker Compose (for running GOVSSO-Client together with GOVSSO-Mock)
+* Java 17 JDK (for building locally)
 
-## Building and Running Locally
+## Running pre-built public image in Docker Compose
 
-1. Follow [GOVSSO-Session/README.md](https://github.com/e-gov/GOVSSO-Session/blob/master/README.md) to run dependent
-   services.
-2. If you have generated new TLS certificates (doable at project GOVSSO-Session) after the last copy, then
-    * copy-replace the following files to `src/main/resources`:
-        - `GOVSSO-Session/local/tls/clienta/clienta.localhost.keystore.p12`
-        - `GOVSSO-Session/local/tls/clienta/clienta.localhost.govsso.truststore.p12`
-        - `GOVSSO-Session/local/tls/clienta/clienta.localhost.tara.truststore.p12`
-    * copy-replace the following files to `src/test/resources`:
-        - `GOVSSO-Session/local/tls/inproxy/inproxy.localhost.keystore.p12`
-3. Add `127.0.0.1 inproxy.localhost` line to `hosts` file. This is needed only for requests originating from
-   GOVSSO-Client when it's running locally (not in Docker Compose). It's not needed for web browsers as popular browsers
-   already have built-in support for resolving `*.localhost` subdomains.
-4. Decide if you want to interface with GovSSO or TARA and choose the appropriate Spring profile in the next step.
-5. Run
-   ```shell 
-   ./mvnw spring-boot:run -Dspring.profiles.active=<tara|govsso>
-   ```
+1. Clone https://github.com/e-gov/GOVSSO-Mock repository
+2. Follow [GOVSSO-Mock/README.md "Quick start"](https://github.com/e-gov/GOVSSO-Mock/blob/master/README.md#quick-start)
+   instructions
 
-## Running in Docker
+## Running custom build in Docker Compose
 
 1. Build
-    * Either build locally
-      ```shell
-      ./mvnw spring-boot:build-image
-      ```
-    * Or build in Docker
+    * Either build in Docker
       ```shell
       docker run --pull always --rm \
                  -v /var/run/docker.sock:/var/run/docker.sock \
@@ -75,17 +59,25 @@ production.
                  -v "$PWD:/usr/src/project" \
                  -w /usr/src/project \
                  maven:3.9-eclipse-temurin-17 \
-                 mvn spring-boot:build-image
+                 mvn spring-boot:build-image -DskipTests
       ```
-      Git Bash users on Windows should add `MSYS_NO_PATHCONV=1` in front of the command.
-2. Follow GOVSSO-Session/README.md to run GOVSSO-Client and dependent services inside Docker Compose
+      Git Bash users on Windows should add `MSYS_NO_PATHCONV=1` in front of the command
+    * Or build locally
+      ```shell
+      ./mvnw spring-boot:build-image -DskipTests
+      ```
+3. Clone https://github.com/e-gov/GOVSSO-Mock repository
+4. Open `GOVSSO-Mock/docker-compose.yml` and replace reference of pre-built public
+   image `image: ghcr.io/e-gov/govsso-client:x.y.z` with locally built image `image: govsso-client:latest`
+5. Follow [GOVSSO-Mock/README.md "Quick start"](https://github.com/e-gov/GOVSSO-Mock/blob/master/README.md#quick-start)
+   instructions
 
 ## Endpoints
 
-* https://clienta.localhost:11443/ - UI, end-user endpoints (requests initiated from web browsers)
-* https://clienta.localhost:11443/oauth2/back-channel-logout/govsso - back-channel logout endpoint (requests initiated
+* https://client.localhost:11443/ - UI, end-user endpoints (requests initiated from web browsers)
+* https://client.localhost:11443/oauth2/back-channel-logout/govsso - back-channel logout endpoint (requests initiated
   from GovSSO service)
-* https://clienta.localhost:11443/actuator - maintenance endpoints
+* https://client.localhost:11443/actuator - maintenance endpoints
 
 ## Security operations
 
