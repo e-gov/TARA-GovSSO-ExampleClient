@@ -1,24 +1,15 @@
 <img src="src/main/resources/static/assets/eu_regional_development_fund_horizontal.jpg" width="350" height="200" alt="European Union European Regional Development Fund"/>
 
-# GovSSO/TARA Example Client
+# TARA/GovSSO Example Client
 
-Example client application that integrates with GovSSO service using the protocol specified
-at https://e-gov.github.io/GOVSSO/TechnicalSpecification and TARA service using the protocol specified
-at https://e-gov.github.io/TARA-Doku/TechnicalSpecification. Demonstrates authentication, session update, RP-initiated
+Example client application that integrates with TARA service using the protocol specified
+at https://e-gov.github.io/TARA-Doku/TechnicalSpecification and with GovSSO service using the protocol specified
+at https://e-gov.github.io/GOVSSO/TechnicalSpecification. Demonstrates authentication, session update, RP-initiated
 logout and back-channel logout flows (when applicable).
 
-Example client contains support for both GovSSO and TARA in the code base, but can run in a single mode at a time (mode
-must be set with a Spring profile). When developing your client application, implement only GovSSO or TARA support
+Example client contains support for both TARA and GovSSO in the code base, but can run in a single mode at a time (mode
+must be set with a Spring profile). When developing your client application, implement only TARA or GovSSO support
 depending on the service you are integrating with.
-
-**For GovSSO** demonstration and testing purposes, there are two publicly accessible deployments
-of [example clients integrated with `govsso-demo.ria.ee`](https://e-gov.github.io/GOVSSO/Demo):
-
-* [https://govsso-demo-client-a.id.ee/](https://govsso-demo-client-a.id.ee/)
-* [https://govsso-demo-client-b.id.ee/](https://govsso-demo-client-b.id.ee/)
-
-Example client in GovSSO mode can also be used with GovSSO mock. Visit https://github.com/e-gov/GOVSSO-Mock for more
-information.
 
 **For TARA** demonstration and testing purposes, there are two publicly accessible deployments
 of [example clients integrated with `tara-test.ria.ee`](https://e-gov.github.io/TARA-Doku/Demo):
@@ -32,7 +23,16 @@ of [example clients integrated with `tara-test.ria.ee`](https://e-gov.github.io/
 Example client in TARA mode can also be used with TARA mock. Visit https://github.com/e-gov/TARA-Mock for more
 information.
 
-OpenID Connect support that is needed for GovSSO and TARA integrations is based on the Spring Security framework's OAuth
+**For GovSSO** demonstration and testing purposes, there are two publicly accessible deployments
+of [example clients integrated with `govsso-demo.ria.ee`](https://e-gov.github.io/GOVSSO/Demo):
+
+* [https://govsso-demo-client-a.id.ee/](https://govsso-demo-client-a.id.ee/)
+* [https://govsso-demo-client-b.id.ee/](https://govsso-demo-client-b.id.ee/)
+
+Example client in GovSSO mode can also be used with GovSSO mock. Visit https://github.com/e-gov/GOVSSO-Mock for more
+information.
+
+OpenID Connect support that is needed for TARA and GovSSO integrations is based on the Spring Security framework's OAuth
 2.0 module. Example client source code is provided for study purposes and it cannot be used out of the box in
 production.
 
