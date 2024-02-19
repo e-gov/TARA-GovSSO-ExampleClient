@@ -12,7 +12,7 @@
     </parent>
 
     <groupId>ee.ria.govsso</groupId>
-    <artifactId>govsso-client</artifactId>
+    <artifactId>tara-govsso-exampleclient</artifactId>
     <version>0.7.2</version>
 
     <name>GovSSO Example Client</name>
