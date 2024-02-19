@@ -39,7 +39,7 @@ production.
 ## Prerequisites
 
 * Docker Engine
-* Docker Compose (for running GOVSSO-Client together with GOVSSO-Mock)
+* Docker Compose (for running example client together with GOVSSO-Mock)
 * Java 17 JDK (for building locally)
 
 ## Running pre-built public image in Docker Compose
