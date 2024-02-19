@@ -6,7 +6,7 @@ on:
     tags:
       - v[0-9]+.[0-9]+.[0-9]+
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/govsso-client
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/tara-govsso-exampleclient
 jobs:
   build:
     name: Build

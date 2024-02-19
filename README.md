@@ -68,7 +68,7 @@ production.
       ```
 3. Clone https://github.com/e-gov/GOVSSO-Mock repository
 4. Open `GOVSSO-Mock/docker-compose.yml` and replace reference of pre-built public
-   image `image: ghcr.io/e-gov/govsso-client:x.y.z` with locally built image `image: govsso-client:latest`
+   image `image: ghcr.io/e-gov/tara-govsso-exampleclient:x.y.z` with locally built image `image: govsso-client:latest`
 5. Follow [GOVSSO-Mock/README.md "Quick start"](https://github.com/e-gov/GOVSSO-Mock/blob/master/README.md#quick-start)
    instructions
 
