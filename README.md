@@ -9,7 +9,9 @@ logout and back-channel logout flows (when applicable).
 
 Example client contains support for both TARA and GovSSO in the code base, but can run in a single mode at a time (mode
 must be set with a Spring profile). When developing your client application, implement only TARA or GovSSO support
-depending on the service you are integrating with.
+depending on the service you are integrating with. OpenID Connect support for TARA and GovSSO integrations in example
+client is based on the Spring Security framework's OAuth 2.0 module. **NB! Example client source code is provided for
+study purposes and it cannot be used out of the box in production.**
 
 **For TARA** demonstration and testing purposes, there are two publicly accessible deployments
 of [example clients integrated with `tara-test.ria.ee`](https://e-gov.github.io/TARA-Doku/Demo):
@@ -31,10 +33,6 @@ of [example clients integrated with `govsso-demo.ria.ee`](https://e-gov.github.i
 
 Example client in GovSSO mode can also be used with GovSSO mock. Visit https://github.com/e-gov/GOVSSO-Mock for more
 information.
-
-OpenID Connect support that is needed for TARA and GovSSO integrations is based on the Spring Security framework's OAuth
-2.0 module. Example client source code is provided for study purposes and it cannot be used out of the box in
-production.
 
 ## Prerequisites
 
