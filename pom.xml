@@ -15,7 +15,7 @@
     <artifactId>tara-govsso-exampleclient</artifactId>
     <version>0.7.2</version>
 
-    <name>GovSSO Example Client</name>
+    <name>TARA/GovSSO Example Client</name>
     <licenses>
         <license>
             <name>MIT</name>
