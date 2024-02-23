@@ -31,19 +31,19 @@ of [example clients integrated with `govsso-demo.ria.ee`](https://e-gov.github.i
 * [https://govsso-demo-client-a.id.ee/](https://govsso-demo-client-a.id.ee/)
 * [https://govsso-demo-client-b.id.ee/](https://govsso-demo-client-b.id.ee/)
 
-Example client in GovSSO mode can also be used with GovSSO mock. Visit https://github.com/e-gov/GOVSSO-Mock for more
+Example client in GovSSO mode can also be used with GovSSO mock. Visit https://github.com/e-gov/GovSSO-Mock for more
 information.
 
 ## Prerequisites
 
 * Docker Engine
-* Docker Compose (for running example client together with GOVSSO-Mock)
+* Docker Compose (for running example client together with GovSSO-Mock)
 * Java 17 JDK (for building locally)
 
 ## Running pre-built public image in Docker Compose
 
-1. Clone https://github.com/e-gov/GOVSSO-Mock repository
-2. Follow [GOVSSO-Mock/README.md "Quick start"](https://github.com/e-gov/GOVSSO-Mock/blob/master/README.md#quick-start)
+1. Clone https://github.com/e-gov/GovSSO-Mock repository
+2. Follow [GovSSO-Mock/README.md "Quick start"](https://github.com/e-gov/GovSSO-Mock/blob/master/README.md#quick-start)
    instructions
 
 ## Running custom build in Docker Compose
@@ -64,11 +64,11 @@ information.
       ```shell
       ./mvnw spring-boot:build-image -DskipTests
       ```
-3. Clone https://github.com/e-gov/GOVSSO-Mock repository
-4. Open `GOVSSO-Mock/docker-compose.yml` and replace reference of pre-built public
+3. Clone https://github.com/e-gov/GovSSO-Mock repository
+4. Open `GovSSO-Mock/docker-compose.yml` and replace reference of pre-built public
    image `image: ghcr.io/e-gov/tara-govsso-exampleclient:x.y.z` with locally built
    image `image: tara-govsso-exampleclient:latest`
-5. Follow [GOVSSO-Mock/README.md "Quick start"](https://github.com/e-gov/GOVSSO-Mock/blob/master/README.md#quick-start)
+5. Follow [GovSSO-Mock/README.md "Quick start"](https://github.com/e-gov/GovSSO-Mock/blob/master/README.md#quick-start)
    instructions
 
 ## Endpoints
