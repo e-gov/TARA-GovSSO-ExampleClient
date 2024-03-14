@@ -2,7 +2,9 @@ package ee.ria.govsso.client.controller;
 
 import ee.ria.govsso.client.authentication.ExampleClientUser;
 import ee.ria.govsso.client.configuration.ExampleClientSessionProperties;
+import ee.ria.govsso.client.govsso.configuration.authentication.GovssoAuthentication;
 import ee.ria.govsso.client.govsso.oauth2.GovssoSessionUtil;
+import ee.ria.govsso.client.util.AccessTokenUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,13 +67,18 @@ public class ClientController {
     }
 
     @GetMapping(value = DASHBOARD_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
-    public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser, ExampleClientUser exampleClientUser) {
+    public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser, ExampleClientUser exampleClientUser, GovssoAuthentication authentication) {
         ModelAndView model = new ModelAndView("dashboard");
         model.addObject("application_logo", applicationLogo);
         model.addObject("authentication_provider", getAuthenticationProvider());
         model.addObject("application_title", applicationTitle);
         model.addObject("exampleClientUser", exampleClientUser);
         model.addObject("allowed_idle_time", sessionProperties.idleTimeout().toSeconds());
+        model.addObject("refresh_token", authentication.getRefreshToken().getTokenValue());
+        String accessToken = authentication.getAccessToken().getTokenValue();
+        if (AccessTokenUtil.isJwtAccessToken(accessToken)) {
+            model.addObject("access_token", accessToken);
+        }
 
         log.info("Showing dashboard for subject='{}'", oidcUser.getSubject());
         addIdTokenDataToModel(oidcUser, model);

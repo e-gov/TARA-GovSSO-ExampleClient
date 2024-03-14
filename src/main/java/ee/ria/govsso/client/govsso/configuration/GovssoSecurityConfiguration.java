@@ -254,6 +254,7 @@ public class GovssoSecurityConfiguration {
                     authenticationResult.getAuthorities(),
                     authenticationResult.getClientRegistration().getRegistrationId(),
                     authenticationResult.getRefreshToken(),
+                    authenticationResult.getAccessToken(),
                     govssoExampleClientUserFactory.create(authenticationResult.getPrincipal()));
         }
 

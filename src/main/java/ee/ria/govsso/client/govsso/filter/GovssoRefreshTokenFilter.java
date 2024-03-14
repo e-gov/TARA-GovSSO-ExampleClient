@@ -5,6 +5,7 @@ import ee.ria.govsso.client.govsso.configuration.GovssoRefreshTokenTokenResponse
 import ee.ria.govsso.client.govsso.configuration.authentication.GovssoAuthentication;
 import ee.ria.govsso.client.govsso.configuration.authentication.GovssoExampleClientUserFactory;
 import ee.ria.govsso.client.govsso.oauth2.GovssoSessionUtil;
+import ee.ria.govsso.client.util.AccessTokenUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -99,7 +100,7 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(newAuthToken);
         saveAuthorizedClient(newAuthToken, clientRegistration, tokenResponse);
 
-        writeResponse(response, ((OidcUser) newAuthToken.getPrincipal()).getIdToken());
+        writeResponse(response, ((OidcUser) newAuthToken.getPrincipal()).getIdToken(), tokenResponse.getAccessToken().getTokenValue(), tokenResponse.getRefreshToken().getTokenValue());
         log.info("Refresh token request successful");
     }
 
@@ -119,11 +120,12 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
                 oidcUser.getAuthorities(),
                 oidcUserRequest.getClientRegistration().getRegistrationId(),
                 tokenResponse.getRefreshToken(),
+                tokenResponse.getAccessToken(),
                 govssoExampleClientUserFactory.create(oidcUser));
     }
 
-    private void writeResponse(HttpServletResponse response, OidcIdToken idToken) throws IOException {
-        String refreshTokenResponse = generateDemoResponse(idToken);
+    private void writeResponse(HttpServletResponse response, OidcIdToken idToken, String accessToken, String refreshToken) throws IOException {
+        String refreshTokenResponse = generateDemoResponse(idToken, accessToken, refreshToken);
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");
         response.setCharacterEncoding(StandardCharsets.UTF_8.displayName());
@@ -155,9 +157,14 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
      * You most likely wouldn't want to return all of this to your applications front-end but since we do want to
      * display all of it in example client to make debugging easier, we are doing it in this case.
      */
-    private String generateDemoResponse(OidcIdToken idToken) {
+    private String generateDemoResponse(OidcIdToken idToken, String accessToken, String refreshToken) {
         Map<String, Object> response = new HashMap<>();
         response.put("id_token", idToken.getTokenValue());
+
+        if (AccessTokenUtil.isJwtAccessToken(accessToken)) {
+            response.put("access_token", accessToken);
+        }
+        response.put("refresh_token", refreshToken);
         response.put("jti", idToken.getClaimAsString("jti"));
         response.put("iss", idToken.getIssuer().toString());
         response.put("aud", idToken.getAudience().stream()
