@@ -48,7 +48,7 @@ function updateGovSsoSession() {
 
                 $('#id_token').text(idToken.id_token);
                 $('#access_token').text(idToken.access_token);
-                $('#refresh_token').text(idToken.access_token);
+                $('#refresh_token').text(idToken.refresh_token);
                 $('#jti').text(idToken.jti);
                 $('#iss').text(idToken.iss);
                 $('#aud').text(idToken.aud);
