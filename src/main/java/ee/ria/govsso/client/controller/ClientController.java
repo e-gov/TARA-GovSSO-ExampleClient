@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Controller;
@@ -67,17 +68,20 @@ public class ClientController {
     }
 
     @GetMapping(value = DASHBOARD_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
-    public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser, ExampleClientUser exampleClientUser, GovssoAuthentication authentication) {
+    public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser, ExampleClientUser exampleClientUser, Authentication authentication) {
         ModelAndView model = new ModelAndView("dashboard");
         model.addObject("application_logo", applicationLogo);
         model.addObject("authentication_provider", getAuthenticationProvider());
         model.addObject("application_title", applicationTitle);
         model.addObject("exampleClientUser", exampleClientUser);
         model.addObject("allowed_idle_time", sessionProperties.idleTimeout().toSeconds());
-        model.addObject("refresh_token", authentication.getRefreshToken().getTokenValue());
-        String accessToken = authentication.getAccessToken().getTokenValue();
-        if (AccessTokenUtil.isJwtAccessToken(accessToken)) {
-            model.addObject("access_token", accessToken);
+
+        if (authentication instanceof GovssoAuthentication govssoAuthentication) {
+            model.addObject("refresh_token", govssoAuthentication.getRefreshToken().getTokenValue());
+            String accessToken = govssoAuthentication.getAccessToken().getTokenValue();
+            if (AccessTokenUtil.isJwtAccessToken(accessToken)) {
+                model.addObject("access_token", accessToken);
+            }
         }
 
         log.info("Showing dashboard for subject='{}'", oidcUser.getSubject());
