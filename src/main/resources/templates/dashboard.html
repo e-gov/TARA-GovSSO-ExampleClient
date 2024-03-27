@@ -81,7 +81,7 @@
                         <td>access_token</td>
                         <td th:id="access_token" th:text="${access_token}"></td>
                     </tr>
-                    <tr>
+                    <tr th:if="${refresh_token}">
                         <td>refresh_token</td>
                         <td th:id="refresh_token" th:text="${refresh_token}"></td>
                     </tr>
