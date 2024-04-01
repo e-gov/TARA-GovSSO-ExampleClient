@@ -70,14 +70,14 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
             return;
         }
         try {
-            handleRefresh(response);
+            handleRefresh(response, request.getParameter("scope"));
         } catch (Exception e) {
             log.error("Refresh token request failed", e);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         }
     }
 
-    private void handleRefresh(HttpServletResponse response) throws IOException {
+    private void handleRefresh(HttpServletResponse response, String scope) throws IOException {
         Authentication previousAuthentication =
                 SecurityContextHolder.getContext().getAuthentication();
         if (!(previousAuthentication instanceof GovssoAuthentication previousGovssoAuthentication)) {
@@ -94,7 +94,7 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
         ClientRegistration clientRegistration =
                 clientRegistrationRepository.findByRegistrationId(GOVSSO_REGISTRATION_ID);
         OAuth2AccessTokenResponse tokenResponse =
-                performRefreshTokenGrantRequest(clientRegistration, previousGovssoAuthentication.getRefreshToken());
+                performRefreshTokenGrantRequest(clientRegistration, previousGovssoAuthentication.getRefreshToken(), scope);
         GovssoAuthentication newAuthToken =
                 createNewAuthentication(clientRegistration, tokenResponse);
         SecurityContextHolder.getContext().setAuthentication(newAuthToken);
@@ -135,10 +135,12 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
 
     private OAuth2AccessTokenResponse performRefreshTokenGrantRequest(
             ClientRegistration clientRegistration,
-            OAuth2RefreshToken refreshToken) {
+            OAuth2RefreshToken refreshToken,
+            String scope) {
         GovssoRefreshTokenTokenResponseClient.Request tokenRequest = new GovssoRefreshTokenTokenResponseClient.Request(
                 clientRegistration,
-                refreshToken);
+                refreshToken,
+                scope);
         return refreshTokenResponseClient.getTokenResponse(tokenRequest);
     }
 

@@ -35,8 +35,12 @@ function updateGovSsoSession() {
     $('#updateButton').prop('disabled',true);
     const csrfToken = $('meta[name="_csrf"]').attr('content');
     const csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+    var scope = '';
+    if ($('#scope').val()) {
+        scope = '?scope=' + encodeURIComponent($('#scope').val());
+    }
     (async () => {
-        await fetch('/oauth2/refresh/govsso', {
+        await fetch('/oauth2/refresh/govsso' + scope, {
             method: 'POST',
             headers: {
                 [csrfHeader]: csrfToken,

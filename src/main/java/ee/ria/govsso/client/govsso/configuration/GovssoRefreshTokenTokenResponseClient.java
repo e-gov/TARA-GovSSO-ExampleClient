@@ -67,6 +67,9 @@ public class GovssoRefreshTokenTokenResponseClient
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         params.add(OAuth2ParameterNames.REFRESH_TOKEN, request.getOAuth2RefreshToken().getTokenValue());
+        if (request.getScope() != null) {
+            params.add(OAuth2ParameterNames.SCOPE, request.getScope());
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -90,10 +93,12 @@ public class GovssoRefreshTokenTokenResponseClient
     public static class Request extends AbstractOAuth2AuthorizationGrantRequest {
 
         private final OAuth2RefreshToken oAuth2RefreshToken;
+        private final String scope;
 
-        public Request(ClientRegistration clientRegistration, OAuth2RefreshToken oAuth2RefreshToken) {
+        public Request(ClientRegistration clientRegistration, OAuth2RefreshToken oAuth2RefreshToken, String scope) {
             super(AuthorizationGrantType.REFRESH_TOKEN, clientRegistration);
             this.oAuth2RefreshToken = oAuth2RefreshToken;
+            this.scope = scope;
         }
     }
 

@@ -59,6 +59,15 @@
                             Update GovSSO session
                         </button>
                     </div>
+                    <div th:if="${authentication_provider == 'govsso'}"
+                         class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-2 mb-md-0">
+                        <div class="mx-2">
+                            <span>scopes: </span>
+                        </div>
+                        <div>
+                            <input class="form-control form-control-sm" type="text" id="scope" name="scope"/>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="card mb-2">
