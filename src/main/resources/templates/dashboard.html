@@ -107,7 +107,7 @@
                         <th>Value</th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="claimsTableBody">
                     <tr th:each="claim: ${claims}">
                         <td th:text="${claim.getKey()}"/>
                         <td th:id="${claim.getKey()}" th:text="${claim.getValue()}">

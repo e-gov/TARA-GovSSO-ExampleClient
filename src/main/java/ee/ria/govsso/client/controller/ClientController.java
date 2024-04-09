@@ -5,6 +5,7 @@ import ee.ria.govsso.client.configuration.ExampleClientSessionProperties;
 import ee.ria.govsso.client.govsso.configuration.authentication.GovssoAuthentication;
 import ee.ria.govsso.client.govsso.oauth2.GovssoSessionUtil;
 import ee.ria.govsso.client.util.AccessTokenUtil;
+import ee.ria.govsso.client.util.DemoResponseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,11 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.Date;
-import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import static ee.ria.govsso.client.govsso.configuration.condition.OnGovssoCondition.GOVSSO_PROFILE;
 import static ee.ria.govsso.client.tara.configuration.condition.OnTaraCondition.TARA_PROFILE;
@@ -92,34 +89,10 @@ public class ClientController {
 
     private void addIdTokenDataToModel(OidcUser oidcUser, ModelAndView model) {
         model.addObject("id_token", oidcUser.getIdToken().getTokenValue());
-        model.addObject("claims", flattenClaims(oidcUser.getClaims()).entrySet());
+        model.addObject("claims", DemoResponseUtil.flattenClaims(oidcUser.getClaims()).entrySet());
         model.addObject(
                 "time_until_govsso_session_expiration_in_seconds",
                 GovssoSessionUtil.getTimeUntilAuthenticationExpiration().toSeconds());
-    }
-
-    private Map<String, String> flattenClaims(Map<?, ?> claims) {
-        SortedMap<String, String> flatClaims = new TreeMap<>();
-        for (Map.Entry<?, ?> claim : claims.entrySet()) {
-            String key = claim.getKey().toString();
-            Object value = claim.getValue();
-            if (value instanceof Map<?, ?> innerClaims) {
-                Map<String, String> flattenedInnerClaims = flattenClaims(innerClaims);
-                for (Map.Entry<String, String> innerClaim : flattenedInnerClaims.entrySet()) {
-                    flatClaims.put(key + "." + innerClaim.getKey(), innerClaim.getValue());
-                }
-                continue;
-            }
-            flatClaims.put(key, renderClaimValue(value));
-        }
-        return flatClaims;
-    }
-
-    private static String renderClaimValue(Object value) {
-        if (value instanceof Date date) {
-            return date.toInstant().toString();
-        }
-        return value.toString();
     }
 
     private String getAuthenticationProvider() {

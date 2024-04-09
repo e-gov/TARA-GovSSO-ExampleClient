@@ -48,28 +48,23 @@ function updateGovSsoSession() {
             redirect: 'manual'
         }).then(async function (response) {
             if (response.ok) {
-                const idToken = await response.json();
+                const responseBody = await response.json();
+                const claimsTableBody = $('#claimsTableBody');
+                const rows = [];
 
-                $('#id_token').text(idToken.id_token);
-                $('#access_token').text(idToken.access_token);
-                $('#refresh_token').text(idToken.refresh_token);
-                $('#jti').text(idToken.jti);
-                $('#iss').text(idToken.iss);
-                $('#aud').text(idToken.aud);
-                $('#exp').text(idToken.exp);
-                $('#iat').text(idToken.iat);
-                $('#sub').text(idToken.sub);
-                $('#birthdate').text(idToken.birthdate);
-                $('#given_name').text(idToken.given_name);
-                $('#family_name').text(idToken.family_name);
-                $('#amr').text(idToken.amr);
-                $('#nonce').text(idToken.nonce);
-                $('#acr').text(idToken.acr);
-                $('#at_hash').text(idToken.at_hash);
-                $('#sid').text(idToken.sid);
+                $('#id_token').text(responseBody.id_token);
+                $('#access_token').text(responseBody.access_token);
+                $('#refresh_token').text(responseBody.refresh_token);
+
+                $.each(responseBody.id_token_claims, function (key, value) {
+                  const keyCell = $("<td></td>").text(key);
+                  const valueCell = $("<td></td>").text(value);
+                  rows.push($("<tr></tr>").append([keyCell, valueCell]));
+                });
+                $('#claimsTableBody').html(rows);
                 $('#error').hide();
 
-                sessionLengthInSeconds = idToken.time_until_govsso_session_expiration_in_seconds;
+                sessionLengthInSeconds = responseBody.time_until_govsso_session_expiration_in_seconds;
                 clearInterval(sessionTimer);
                 endTime = getCurrentTimeStampInSeconds() + sessionLengthInSeconds - GOVSSO_SESSION_UPDATE_BUFFER_SECONDS;
                 sessionTimer = setInterval(incrementSeconds, 1000);

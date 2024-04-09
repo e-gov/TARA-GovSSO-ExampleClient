@@ -6,6 +6,7 @@ import ee.ria.govsso.client.govsso.configuration.authentication.GovssoAuthentica
 import ee.ria.govsso.client.govsso.configuration.authentication.GovssoExampleClientUserFactory;
 import ee.ria.govsso.client.govsso.oauth2.GovssoSessionUtil;
 import ee.ria.govsso.client.util.AccessTokenUtil;
+import ee.ria.govsso.client.util.DemoResponseUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +38,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static ee.ria.govsso.client.govsso.configuration.GovssoOidcConfiguration.GOVSSO_REGISTRATION_ID;
 import static org.springframework.http.HttpMethod.POST;
@@ -99,8 +99,9 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
                 createNewAuthentication(clientRegistration, tokenResponse);
         SecurityContextHolder.getContext().setAuthentication(newAuthToken);
         saveAuthorizedClient(newAuthToken, clientRegistration, tokenResponse);
+        OidcUser oidcUser = (OidcUser) newAuthToken.getPrincipal();
 
-        writeResponse(response, ((OidcUser) newAuthToken.getPrincipal()).getIdToken(), tokenResponse.getAccessToken().getTokenValue(), tokenResponse.getRefreshToken().getTokenValue());
+        writeResponse(response, oidcUser, tokenResponse.getAccessToken().getTokenValue(), tokenResponse.getRefreshToken().getTokenValue());
         log.info("Refresh token request successful");
     }
 
@@ -124,8 +125,8 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
                 govssoExampleClientUserFactory.create(oidcUser));
     }
 
-    private void writeResponse(HttpServletResponse response, OidcIdToken idToken, String accessToken, String refreshToken) throws IOException {
-        String refreshTokenResponse = generateDemoResponse(idToken, accessToken, refreshToken);
+    private void writeResponse(HttpServletResponse response, OidcUser oidcUser, String accessToken, String refreshToken) throws IOException {
+        String refreshTokenResponse = generateDemoResponse(oidcUser, accessToken, refreshToken);
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");
         response.setCharacterEncoding(StandardCharsets.UTF_8.displayName());
@@ -159,33 +160,16 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
      * You most likely wouldn't want to return all of this to your applications front-end but since we do want to
      * display all of it in example client to make debugging easier, we are doing it in this case.
      */
-    private String generateDemoResponse(OidcIdToken idToken, String accessToken, String refreshToken) {
+    private String generateDemoResponse(OidcUser oidcUser, String accessToken, String refreshToken) {
         Map<String, Object> response = new HashMap<>();
-        response.put("id_token", idToken.getTokenValue());
-
+        response.put("id_token_claims", DemoResponseUtil.flattenClaims(oidcUser.getClaims()));
+        response.put("id_token", oidcUser.getIdToken().getTokenValue());
         if (AccessTokenUtil.isJwtAccessToken(accessToken)) {
             response.put("access_token", accessToken);
         }
         response.put("refresh_token", refreshToken);
-        response.put("jti", idToken.getClaimAsString("jti"));
-        response.put("iss", idToken.getIssuer().toString());
-        response.put("aud", idToken.getAudience().stream()
-                .map(String::valueOf)
-                .collect(Collectors.joining(",", "[", "]")));
-        response.put("exp", idToken.getClaimAsString("exp"));
-        response.put("iat", idToken.getClaimAsString("iat"));
-        response.put("sub", idToken.getSubject());
-        response.put("birthdate", idToken.getClaimAsString("birthdate"));
-        response.put("given_name", idToken.getClaimAsString("given_name"));
-        response.put("family_name", idToken.getClaimAsString("family_name"));
-        response.put("amr", idToken.getClaimAsString("amr"));
-        response.put("nonce", idToken.getClaimAsString("nonce"));
-        response.put("acr", idToken.getClaimAsString("acr"));
-        response.put("at_hash", idToken.getClaimAsString("at_hash"));
-        response.put("sid", idToken.getClaimAsString("sid"));
         response.put("time_until_govsso_session_expiration_in_seconds",
                 GovssoSessionUtil.getTimeUntilAuthenticationExpiration().toSeconds());
         return JSONObjectUtils.toJSONString(response);
     }
-
 }
