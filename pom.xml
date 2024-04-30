@@ -7,7 +7,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <!-- TODO AUT-1559 Upgrade to Spring Boot 3.2 -->
-        <version>3.1.9</version>
+        <version>3.1.11</version>
         <relativePath/><!-- Lookup parent from repository. -->
     </parent>
 
@@ -32,7 +32,7 @@
 
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <bootstrap.version>4.5.0</bootstrap.version> <!-- TODO AUT-1499 update from 4.5.0 to version 5.x.x -->
-        <wiremock.version>3.4.2</wiremock.version>
+        <wiremock.version>3.5.4</wiremock.version>
     </properties>
 
     <dependencies><!-- Ordered by scope, groupId, artifactId. -->
