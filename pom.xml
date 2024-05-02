@@ -13,7 +13,7 @@
 
     <groupId>ee.ria.govsso</groupId>
     <artifactId>tara-govsso-exampleclient</artifactId>
-    <version>0.7.4</version>
+    <version>0.8.0</version>
 
     <name>TARA/GovSSO Example Client</name>
     <licenses>
