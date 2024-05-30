@@ -77,7 +77,7 @@ public class OidcBackChannelLogoutFilter extends OncePerRequestFilter {
         if (logoutToken == null) {
             throw new RuntimeException("No logout token provided");
         }
-        log.debug("Received back-channel logout request token: {}", logoutToken);
+        log.info("Received back-channel logout request token: {}", logoutToken);
         Jwt validLogoutToken = logoutTokenDecoderFactory.createDecoder(clientRegistration).decode(logoutToken);
         invalidateOidcUserSession(validLogoutToken);
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
