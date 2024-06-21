@@ -6,8 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <!-- TODO AUT-1559 Upgrade to Spring Boot 3.2 -->
-        <version>3.1.11</version>
+        <version>3.3.1</version>
         <relativePath/><!-- Lookup parent from repository. -->
     </parent>
 
@@ -32,7 +31,7 @@
 
         <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
         <bootstrap.version>4.5.0</bootstrap.version> <!-- TODO AUT-1499 update from 4.5.0 to version 5.x.x -->
-        <wiremock.version>3.5.4</wiremock.version>
+        <wiremock.version>3.7.0</wiremock.version>
     </properties>
 
     <dependencies><!-- Ordered by scope, groupId, artifactId. -->
@@ -88,9 +87,15 @@
             <artifactId>bootstrap</artifactId>
             <version>${bootstrap.version}</version>
         </dependency>
+        <!-- The new Wiremock version installs Jetty 12 as a transitive dependency.
+        However, Wiremock is only compatible with Jetty 11 by default.
+        As a result, Jetty needs to be downgraded to version 11 or a new wiremock-jetty12 dependency should be used.
+        See more info: https://wiremock.org/docs/jetty-12/
+        Since we would like to only upgrade dependencies, downgrading to Jetty 11 is not an option.
+        Using wiremock-jetty12 leads to erroneous tests, but it also contains a critical vulnerability. -->
         <dependency>
             <groupId>org.wiremock</groupId>
-            <artifactId>wiremock</artifactId>
+            <artifactId>wiremock-standalone</artifactId>
             <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
