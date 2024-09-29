@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.1</version>
+        <version>3.3.4</version>
         <relativePath/><!-- Lookup parent from repository. -->
     </parent>
 
@@ -29,9 +29,9 @@
         <maven.compiler.release>17</maven.compiler.release>
         <spring-boot.build-image.imageName>${project.artifactId}:latest</spring-boot.build-image.imageName><!-- Use "latest" tag instead of version tag. -->
 
-        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
+        <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <bootstrap.version>4.5.3</bootstrap.version> <!-- TODO AUT-1499 update from 4.5.0 to version 5.x.x -->
-        <wiremock.version>3.7.0</wiremock.version>
+        <wiremock.version>3.9.1</wiremock.version>
     </properties>
 
     <dependencies><!-- Ordered by scope, groupId, artifactId. -->
