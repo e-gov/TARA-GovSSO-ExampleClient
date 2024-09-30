@@ -10,7 +10,7 @@
     <meta th:name="_csrf" th:content="${_csrf.token}"/>
     <meta th:name="_csrf_header" th:content="${_csrf.headerName}"/>
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/webjars/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/webjars/bootstrap/4.5.3/css/bootstrap.min.css">
     <title th:text="${application_title} + ' - Dashboard'"></title>
 </head>
 <body>
@@ -120,7 +120,7 @@
 </div>
 <script src="/webjars/jquery/3.5.1/jquery.slim.min.js"></script>
 <script src="/webjars/popper.js/1.16.0/umd/popper.min.js"></script>
-<script src="/webjars/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<script src="/webjars/bootstrap/4.5.3/js/bootstrap.min.js"></script>
 <!-- Required scripts -->
 <script th:if="${authentication_provider == 'govsso'}"
         src="/scripts/govsso-session-update.js" type="text/javascript"></script>
