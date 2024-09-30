@@ -16,6 +16,9 @@ management:
     git:
       mode: full
 
+server:
+  forward-headers-strategy: NATIVE
+
 spring:
   main:
     banner-mode: off

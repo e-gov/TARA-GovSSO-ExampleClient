@@ -21,6 +21,7 @@ spring:
     banner-mode: off
 
 server:
+  forward-headers-strategy: NONE # Under main this cannot be enabled by default, because docker-compose.yml doesn't have another proxy in front of this application that would always set X-Forwarded-For header. X-Forwarded-For value that could be set outside of your own infrastructure, cannot be trusted.
   # Use same port as govsso-session/docker-compose.yml.
   port: 11443
   ssl:
