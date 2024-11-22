@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>3.3.6</version>
         <relativePath/><!-- Lookup parent from repository. -->
     </parent>
 
@@ -31,7 +31,7 @@
 
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
         <bootstrap.version>4.5.3</bootstrap.version> <!-- TODO AUT-1499 update from 4.5.x to version 5.x.x -->
-        <wiremock.version>3.9.1</wiremock.version>
+        <wiremock.version>3.9.2</wiremock.version>
     </properties>
 
     <dependencies><!-- Ordered by scope, groupId, artifactId. -->
