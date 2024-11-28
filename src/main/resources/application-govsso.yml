@@ -1,3 +1,8 @@
+server:
+  tomcat:
+    # Support long request URL-s required by RP initiated logout requests where id_token_hint parameter is an ID token
+    # containing a long representee_list claim value.
+    max-http-response-header-size: 128KB
 spring:
   application:
     name: govsso-client
