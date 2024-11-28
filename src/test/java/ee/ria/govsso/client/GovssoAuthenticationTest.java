@@ -1,15 +1,11 @@
 package ee.ria.govsso.client;
 
-import ee.ria.govsso.client.govsso.configuration.GovssoProperties;
 import io.restassured.filter.cookie.CookieFilter;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -28,37 +24,6 @@ import static org.hamcrest.Matchers.notNullValue;
 @ActiveProfiles(value = "govsso")
 public class GovssoAuthenticationTest extends BaseTest {
 
-    private static final String LOCATION_HEADER = "Location";
-
-    private static GovssoMock govssoMock;
-
-    @Autowired
-    public GovssoProperties govssoProperties;
-
-    @BeforeAll
-    static void beforeAll() {
-        govssoMock = new GovssoMock();
-    }
-
-    @AfterAll
-    @SneakyThrows
-    static void afterAll() {
-        try {
-            if (govssoMock != null) {
-                govssoMock.close();
-            }
-        } finally {
-            govssoMock = null;
-        }
-    }
-
-    @Override
-    @BeforeEach
-    void setUp() {
-        super.setUp();
-        govssoMock.setGovssoProperties(govssoProperties);
-    }
-
     @Test
     public void applicationStartup() {
     }
@@ -75,7 +40,7 @@ public class GovssoAuthenticationTest extends BaseTest {
                 .then()
                 .assertThat()
                 .statusCode(302)
-                .header(LOCATION_HEADER, url()
+                .header(HttpHeaders.LOCATION, url()
                         .scheme(equalTo("https"))
                         .authority(equalTo("inproxy.localhost:13442"))
                         .path(equalTo("/oauth2/auth"))
@@ -86,7 +51,7 @@ public class GovssoAuthenticationTest extends BaseTest {
                         .param("client_id", equalTo(govssoProperties.clientId()))
                         .param("redirect_uri", equalTo(govssoProperties.redirectUri())))
                 .extract();
-        String govssoAuthenticationRequestUrl = startAuthenticationResponse.header(LOCATION_HEADER);
+        String govssoAuthenticationRequestUrl = startAuthenticationResponse.header(HttpHeaders.LOCATION);
         UriComponents locationComponents = UriComponentsBuilder.fromUriString(govssoAuthenticationRequestUrl).build();
         String state = getQueryParam(locationComponents, "state");
         String nonce = getQueryParam(locationComponents, "nonce");
@@ -103,7 +68,7 @@ public class GovssoAuthenticationTest extends BaseTest {
                 .get(completeAuthenticationUrl)
                 .then()
                 .statusCode(302)
-                .header(LOCATION_HEADER, url()
+                .header(HttpHeaders.LOCATION, url()
                         .scheme(equalTo("http"))
                         .host(equalTo("localhost"))
                         .port(equalTo(port))

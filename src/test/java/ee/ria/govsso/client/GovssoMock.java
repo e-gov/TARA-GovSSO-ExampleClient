@@ -12,6 +12,7 @@ import ee.ria.govsso.client.govsso.configuration.GovssoProperties;
 import ee.ria.govsso.client.wiremock.XWwwFormUrlencodedMatcher;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 import java.net.URL;
@@ -23,6 +24,7 @@ import java.util.Base64;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -71,7 +73,7 @@ public class GovssoMock implements AutoCloseable {
         server.stubFor(get(urlEqualTo("/.well-known/jwks.json"))
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withHeader("Content-Type", "application/json; charset=UTF-8")
+                        .withHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
                         .withBody(jwkSet.toPublicJWKSet().toString())));
     }
 
@@ -79,36 +81,46 @@ public class GovssoMock implements AutoCloseable {
         server.stubFor(get(urlEqualTo("/.well-known/openid-configuration"))
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withHeader("Content-Type", "application/json; charset=UTF-8")
+                        .withHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
                         .withBodyFile(FILES_FOLDER + OPENID_CONFIGURATION_FILE_NAME)));
     }
 
     public void stubTokenEndpoint(String code, String nonce) {
-        String tokenResponseTemplate = readFile(FILES_FOLDER + TOKEN_FILE_NAME);
+        String tokenResponseTemplate = readFile(Path.of(FILES_FOLDER, TOKEN_FILE_NAME));
         String tokenResponse = tokenResponseTemplate.replace("<id-token>", toJsonString(createIdToken(nonce)));
         server.stubFor(post(urlEqualTo("/oauth2/token"))
-                        .withBasicAuth(govssoProperties.clientId(), govssoProperties.clientSecret())
-                        .andMatching(
-                                XWwwFormUrlencodedMatcher.builder()
-                                        .item("code", code)
-                                        .item("grant_type", AuthorizationGrantType.AUTHORIZATION_CODE.getValue())
-                                        .item("redirect_uri", "https://clienta.localhost:11443/login/oauth2/code/govsso")
-                                        .build())
+                .withBasicAuth(govssoProperties.clientId(), govssoProperties.clientSecret())
+                .andMatching(
+                        XWwwFormUrlencodedMatcher.builder()
+                                .item("code", code)
+                                .item("grant_type", AuthorizationGrantType.AUTHORIZATION_CODE.getValue())
+                                .item("redirect_uri", "https://clienta.localhost:11443/login/oauth2/code/govsso")
+                                .build())
                 .willReturn(aResponse()
                         .withStatus(200)
-                        .withHeader("Content-Type", "application/json; charset=UTF-8")
+                        .withHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
                         .withBody(tokenResponse)));
+    }
+
+    public void stubLogoutEndpoint(String idTokenHint, String postLogoutRedirectUri) {
+        server.stubFor(get(urlEqualTo("/oauth2/sessions/logout"))
+                .withQueryParam("id_token_hint", equalTo(idTokenHint))
+                .withQueryParam("post_logout_redirect_uri", equalTo(postLogoutRedirectUri))
+                .willReturn(aResponse()
+                        .withStatus(302)
+                        .withHeader(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
+                        .withHeader(HttpHeaders.LOCATION, postLogoutRedirectUri)));
     }
 
     // Creates a GovSSO spec compliant ID token, except the `exp` value is in year 2040.
     private String createIdToken(String nonce) {
         Base64.Encoder base64Encoder = Base64.getEncoder();
 
-        String headerTemplate = readFile(FILES_FOLDER + "id-token/header.json");
+        String headerTemplate = readFile(Path.of(FILES_FOLDER, "id-token/header.json"));
         String headerJson = headerTemplate.replace("<kid>", toJsonString(jwk.getKeyID()));
         String header = base64Encoder.encodeToString(headerJson.getBytes(StandardCharsets.UTF_8));
 
-        String bodyTemplate = readFile(FILES_FOLDER + "id-token/body.json");
+        String bodyTemplate = readFile(Path.of(FILES_FOLDER, "id-token/body.json"));
         String bodyJson = bodyTemplate.replace("<nonce>", toJsonString(nonce));
         String body = base64Encoder.encodeToString(bodyJson.getBytes(StandardCharsets.UTF_8));
 
@@ -123,8 +135,9 @@ public class GovssoMock implements AutoCloseable {
     }
 
     @SneakyThrows
-    private String readFile(String filePath) {
-        URL fileUrl = requireNonNull(getClass().getClassLoader().getResource("__files/" + filePath));
+    private String readFile(Path filePath) {
+        URL fileUrl = requireNonNull(getClass().getClassLoader().getResource(
+                Path.of("__files").resolve(filePath).toString()));
         return Files.readString(Path.of(fileUrl.toURI()));
     }
 
