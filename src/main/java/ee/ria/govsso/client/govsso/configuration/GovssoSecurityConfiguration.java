@@ -197,7 +197,8 @@ public class GovssoSecurityConfiguration {
     private CsrfTokenRepository csrfTokenRepository() {
         CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repository.setCookieName(COOKIE_NAME_XSRF_TOKEN);
-        repository.setSecure(true);
+        repository.setCookieCustomizer(cookieBuilder -> cookieBuilder
+                .secure(true));
         repository.setCookiePath("/");
         return repository;
     }

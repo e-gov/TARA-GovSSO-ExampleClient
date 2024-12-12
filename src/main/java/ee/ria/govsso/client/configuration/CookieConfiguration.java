@@ -32,6 +32,9 @@ public class CookieConfiguration {
 
     @Bean
     public ServletContextInitializer servletContextInitializer() {
-        return servletContext -> servletContext.getSessionCookieConfig().setName(COOKIE_NAME_SESSION);
+        return servletContext -> {
+            servletContext.getSessionCookieConfig().setName(COOKIE_NAME_SESSION);
+            servletContext.getSessionCookieConfig().setSecure(true);
+        };
     }
 }

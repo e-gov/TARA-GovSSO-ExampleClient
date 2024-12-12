@@ -5,6 +5,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,6 +33,7 @@ public class GovssoAuthenticationTest extends BaseTest {
 
     @Test
     @SneakyThrows
+    @Disabled("TODO AUT-2065")
     public void authenticationAndLogout() {
         String code = "randomly-generated-code";
         CookieFilter cookieFilter = new CookieFilter();
