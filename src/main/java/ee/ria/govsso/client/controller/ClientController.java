@@ -2,10 +2,13 @@ package ee.ria.govsso.client.controller;
 
 import ee.ria.govsso.client.authentication.ExampleClientUser;
 import ee.ria.govsso.client.configuration.ExampleClientSessionProperties;
+import ee.ria.govsso.client.govsso.configuration.GovssoProperties;
 import ee.ria.govsso.client.govsso.configuration.authentication.GovssoAuthentication;
 import ee.ria.govsso.client.govsso.oauth2.GovssoSessionUtil;
 import ee.ria.govsso.client.util.AccessTokenUtil;
 import ee.ria.govsso.client.util.DemoResponseUtil;
+import ee.ria.govsso.client.util.LogoutUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +26,7 @@ import java.util.Set;
 
 import static ee.ria.govsso.client.govsso.configuration.condition.OnGovssoCondition.GOVSSO_PROFILE;
 import static ee.ria.govsso.client.tara.configuration.condition.OnTaraCondition.TARA_PROFILE;
+import static org.springframework.web.servlet.i18n.SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME;
 
 @Slf4j
 @Controller
@@ -42,6 +46,8 @@ public class ClientController {
     private String applicationIntroLong;
     @Value("${example-client.messages.info-service}")
     private String applicationInfoService;
+    @Value("${govsso.post-logout-redirect-uri}")
+    private String postLogoutRedirectUri;
 
     @GetMapping(value = LOGIN_VIEW_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
     public ModelAndView clientLoginView(
@@ -65,7 +71,7 @@ public class ClientController {
     }
 
     @GetMapping(value = DASHBOARD_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
-    public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser, ExampleClientUser exampleClientUser, Authentication authentication) {
+    public ModelAndView dashboard(@AuthenticationPrincipal OidcUser oidcUser, ExampleClientUser exampleClientUser, Authentication authentication, HttpServletRequest request) {
         ModelAndView model = new ModelAndView("dashboard");
         model.addObject("application_logo", applicationLogo);
         model.addObject("authentication_provider", getAuthenticationProvider());
@@ -78,6 +84,14 @@ public class ClientController {
             String accessToken = govssoAuthentication.getAccessToken().getTokenValue();
             if (AccessTokenUtil.isJwtAccessToken(accessToken)) {
                 model.addObject("access_token", accessToken);
+            }
+            String locale = LogoutUtil.getUiLocale(request);
+            if (locale != null) {
+                model.addObject("ui_locales", locale);
+            }
+            String postLogoutRedirectUri = LogoutUtil.postLogoutRedirectUri(request, this.postLogoutRedirectUri);
+            if (postLogoutRedirectUri != null) {
+                model.addObject("post_logout_redirect_uri", postLogoutRedirectUri);
             }
         }
 

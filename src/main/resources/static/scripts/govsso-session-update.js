@@ -53,6 +53,7 @@ function updateGovSsoSession() {
                 const rows = [];
 
                 $('#id_token').text(responseBody.id_token);
+                $('#id_token_hint').text(responseBody.id_token);
                 $('#access_token').text(responseBody.access_token);
                 $('#refresh_token').text(responseBody.refresh_token);
 

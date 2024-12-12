@@ -120,7 +120,7 @@ public class GovssoSecurityConfiguration {
                         .defaultSuccessUrl("/dashboard")
                         .failureHandler(getAuthFailureHandler()))
                 .logout(logoutConfigurer -> {
-                        logoutConfigurer.logoutUrl("/oauth/logout");
+                        logoutConfigurer.logoutRequestMatcher(new AntPathRequestMatcher("/oauth/logout"));
                         /*
                             Using custom handlers to pass ui_locales parameter to GovSSO logout flow.
                         */

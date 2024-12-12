@@ -1,21 +1,24 @@
 package ee.ria.govsso.client.govsso.oauth2;
 
+import ee.ria.govsso.client.util.LogoutUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.log.LogMessage;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.web.DefaultRedirectStrategy;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
-import org.springframework.security.web.util.UrlUtils;
-import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 
 import static ee.ria.govsso.client.govsso.oauth2.GovssoLocalePassingLogoutHandler.UI_LOCALES_PARAMETER;
 
@@ -27,10 +30,30 @@ import static ee.ria.govsso.client.govsso.oauth2.GovssoLocalePassingLogoutHandle
 public class GovssoClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final String postLogoutRedirectUri;
+    private final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
     public GovssoClientInitiatedLogoutSuccessHandler(ClientRegistrationRepository clientRegistrationRepository, String postLogoutRedirectUri) {
         this.clientRegistrationRepository = clientRegistrationRepository;
         this.postLogoutRedirectUri = postLogoutRedirectUri;
+        this.redirectStrategy.setStatusCode(HttpStatus.TEMPORARY_REDIRECT);
+    }
+
+    @Override
+    public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+            throws IOException {
+        handle(request, response, authentication);
+    }
+
+    @Override
+    protected void handle(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+            throws IOException {
+        String targetUrl = determineTargetUrl(request, response, authentication);
+        if (response.isCommitted()) {
+            this.logger.debug(LogMessage.format("Did not redirect to %s since response already committed.", targetUrl));
+            return;
+        }
+
+        this.redirectStrategy.sendRedirect(request, response, targetUrl);
     }
 
     @Override
@@ -42,7 +65,7 @@ public class GovssoClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSu
             URI endSessionEndpoint = endSessionEndpoint(clientRegistration);
             if (endSessionEndpoint != null) {
                 String idToken = idToken(authentication);
-                String postLogoutRedirectUri = postLogoutRedirectUri(request);
+                String postLogoutRedirectUri = LogoutUtil.postLogoutRedirectUri(request, this.postLogoutRedirectUri);
                 targetUrl = endpointUri(request, endSessionEndpoint, idToken, postLogoutRedirectUri);
             }
         }
@@ -64,33 +87,21 @@ public class GovssoClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSu
         return ((OidcUser) authentication.getPrincipal()).getIdToken().getTokenValue();
     }
 
-    private String postLogoutRedirectUri(HttpServletRequest request) {
-        if (postLogoutRedirectUri == null) {
-            return null;
-        }
-        UriComponents uriComponents = UriComponentsBuilder
-                .fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
-                .replacePath(request.getContextPath())
-                .replaceQuery(null)
-                .fragment(null)
-                .build();
-        return UriComponentsBuilder.fromUriString(postLogoutRedirectUri)
-                .buildAndExpand(Collections.singletonMap("baseUrl", uriComponents.toUriString()))
-                .toUriString();
-    }
-
     private String endpointUri(HttpServletRequest request, URI endSessionEndpoint, String idToken, String postLogoutRedirectUri) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUri(endSessionEndpoint);
 
         String locale = (String) request.getAttribute(UI_LOCALES_PARAMETER);
 
-        builder.queryParam("id_token_hint", idToken);
-        if (StringUtils.isNotEmpty(locale)) {
-            builder.queryParam(UI_LOCALES_PARAMETER, locale);
+        if (request.getMethod().equals(HttpMethod.GET.name())) {
+            builder.queryParam("id_token_hint", idToken);
+            if (StringUtils.isNotEmpty(locale)) {
+                builder.queryParam(UI_LOCALES_PARAMETER, locale);
+            }
+            if (postLogoutRedirectUri != null) {
+                builder.queryParam("post_logout_redirect_uri", postLogoutRedirectUri);
+            }
         }
-        if (postLogoutRedirectUri != null) {
-            builder.queryParam("post_logout_redirect_uri", postLogoutRedirectUri);
-        }
+
         return builder.encode(StandardCharsets.UTF_8)
                 .build()
                 .toUriString();

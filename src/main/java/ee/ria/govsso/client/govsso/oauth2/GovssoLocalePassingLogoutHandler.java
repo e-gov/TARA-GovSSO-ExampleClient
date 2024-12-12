@@ -1,5 +1,6 @@
 package ee.ria.govsso.client.govsso.oauth2;
 
+import ee.ria.govsso.client.util.LogoutUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -24,12 +25,9 @@ public class GovssoLocalePassingLogoutHandler implements LogoutHandler {
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            return;
-        }
-        if (session.getAttribute(LOCALE_SESSION_ATTRIBUTE_NAME) instanceof Locale locale) {
-            request.setAttribute(UI_LOCALES_PARAMETER, locale.getLanguage());
+        String locale = LogoutUtil.getUiLocale(request);
+        if (locale != null) {
+            request.setAttribute(UI_LOCALES_PARAMETER, locale);
         }
     }
 }
