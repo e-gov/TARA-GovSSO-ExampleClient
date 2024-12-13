@@ -98,7 +98,7 @@ public class GovssoAuthenticationTest extends BaseTest {
                 .post("/oauth/logout")
                 .then()
                 .statusCode(307)
-                .header("Location", "https://inproxy.localhost:13442/oauth2/sessions/logout");
+                .header("Location", "https://inproxy.localhost:13442/oauth2/sessions/logout?post_logout_redirect_uri=https://clienta.localhost:11443/?show-post-logout-message");
     }
 
     private static String getQueryParam(UriComponents locationComponents, String paramName) {

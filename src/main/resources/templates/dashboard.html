@@ -25,7 +25,6 @@
             <form method="post" th:action="@{/oauth/logout}" id="logoutFormPost">
                 <input type="hidden" th:id="id_token_hint" name="id_token_hint" th:value="${id_token}">
                 <input th:if="${ui_locales}" type="hidden" th:id="ui_locales" name="ui_locales" th:value="${ui_locales}">
-                <input th:if="${post_logout_redirect_uri}" type="hidden" th:id="post_logout_redirect_uri" name="post_logout_redirect_uri" th:value="${post_logout_redirect_uri}">
                 <input class="btn btn-outline-secondary" name="logout_button" type="submit" value="Log out (POST)"/>
             </form>
         </li>

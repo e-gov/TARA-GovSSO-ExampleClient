@@ -97,9 +97,9 @@ public class GovssoClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSu
             if (StringUtils.isNotEmpty(locale)) {
                 builder.queryParam(UI_LOCALES_PARAMETER, locale);
             }
-            if (postLogoutRedirectUri != null) {
-                builder.queryParam("post_logout_redirect_uri", postLogoutRedirectUri);
-            }
+        }
+        if (postLogoutRedirectUri != null) {
+            builder.queryParam("post_logout_redirect_uri", postLogoutRedirectUri);
         }
 
         return builder.encode(StandardCharsets.UTF_8)
