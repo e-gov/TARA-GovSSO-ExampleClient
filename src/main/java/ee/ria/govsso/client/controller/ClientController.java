@@ -83,10 +83,6 @@ public class ClientController {
             if (AccessTokenUtil.isJwtAccessToken(accessToken)) {
                 model.addObject("access_token", accessToken);
             }
-            String locale = LogoutUtil.getUiLocale(request);
-            if (locale != null) {
-                model.addObject("ui_locales", locale);
-            }
         }
 
         log.info("Showing dashboard for subject='{}'", oidcUser.getSubject());

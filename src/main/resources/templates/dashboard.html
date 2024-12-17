@@ -23,12 +23,14 @@
     <ul class="navbar-nav navbar-expand px-3">
         <li class="nav-item px-1 text-nowrap">
             <form method="post" th:action="@{/oauth/logout}" id="logoutFormPost">
-                <input type="hidden" th:id="id_token_hint" name="id_token_hint" th:value="${id_token}">
-                <input th:if="${ui_locales}" type="hidden" th:id="ui_locales" name="ui_locales" th:value="${ui_locales}">
-                <input class="btn btn-outline-secondary" name="logout_button" type="submit" value="Log out (POST)"/>
+                <input  th:if="${authentication_provider == 'govsso'}"
+                        type="hidden" th:id="id_token_hint"
+                        name="id_token_hint" th:value="${id_token}">
+                <input class="btn btn-outline-secondary" name="logout_button" type="submit"
+                       th:value="${authentication_provider == 'govsso' ? 'Log out (POST)' : 'Log out'}"/>
             </form>
         </li>
-        <li class="nav-item px-1 text-nowrap">
+        <li class="nav-item px-1 text-nowrap" th:if="${authentication_provider == 'govsso'}">
             <form method="get" th:action="@{/oauth/logout}" id="logoutFormGet">
                 <input class="btn btn-outline-secondary" name="logout_button" type="submit" value="Log out (GET)"/>
             </form>

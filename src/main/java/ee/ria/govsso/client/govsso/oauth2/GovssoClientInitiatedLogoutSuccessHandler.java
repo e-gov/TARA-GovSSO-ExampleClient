@@ -94,9 +94,9 @@ public class GovssoClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSu
 
         if (request.getMethod().equals(HttpMethod.GET.name())) {
             builder.queryParam("id_token_hint", idToken);
-            if (StringUtils.isNotEmpty(locale)) {
-                builder.queryParam(UI_LOCALES_PARAMETER, locale);
-            }
+        }
+        if (StringUtils.isNotEmpty(locale)) {
+            builder.queryParam(UI_LOCALES_PARAMETER, locale);
         }
         if (postLogoutRedirectUri != null) {
             builder.queryParam("post_logout_redirect_uri", postLogoutRedirectUri);
