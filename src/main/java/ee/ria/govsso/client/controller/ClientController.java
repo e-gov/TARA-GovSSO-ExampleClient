@@ -46,6 +46,8 @@ public class ClientController {
     private String applicationIntroLong;
     @Value("${example-client.messages.info-service}")
     private String applicationInfoService;
+    @Value("${govsso.post-logout-redirect-uri}")
+    private String postLogoutRedirectUri;
 
     @GetMapping(value = LOGIN_VIEW_MAPPING, produces = MediaType.TEXT_HTML_VALUE)
     public ModelAndView clientLoginView(
@@ -82,6 +84,14 @@ public class ClientController {
             String accessToken = govssoAuthentication.getAccessToken().getTokenValue();
             if (AccessTokenUtil.isJwtAccessToken(accessToken)) {
                 model.addObject("access_token", accessToken);
+            }
+            String locale = LogoutUtil.getUiLocale(request);
+            if (locale != null) {
+                model.addObject("ui_locales", locale);
+            }
+            String postLogoutRedirectUri = LogoutUtil.postLogoutRedirectUri(request, this.postLogoutRedirectUri);
+            if (postLogoutRedirectUri != null) {
+                model.addObject("post_logout_redirect_uri", postLogoutRedirectUri);
             }
         }
 
