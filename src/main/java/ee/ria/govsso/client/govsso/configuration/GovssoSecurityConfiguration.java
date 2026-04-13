@@ -171,11 +171,13 @@ public class GovssoSecurityConfiguration {
                 .build();
         http.addFilterBefore(govssoRefreshTokenFilter, SessionManagementFilter.class);
 
-        GovssoSessionExpirationFilter govssoSessionExpirationFilter = GovssoSessionExpirationFilter.builder()
-                .clock(clock)
-                .sessionRegistry(sessionRegistry)
-                .build();
-        http.addFilterBefore(govssoSessionExpirationFilter, ConcurrentSessionFilter.class);
+        if (!govssoProperties.isSecuredApp()) {
+            GovssoSessionExpirationFilter govssoSessionExpirationFilter = GovssoSessionExpirationFilter.builder()
+                    .clock(clock)
+                    .sessionRegistry(sessionRegistry)
+                    .build();
+            http.addFilterBefore(govssoSessionExpirationFilter, ConcurrentSessionFilter.class);
+        }
 
         return http.build();
     }

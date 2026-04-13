@@ -18,6 +18,7 @@ public record GovssoProperties(
         @NotNull Resource trustStore,
         @NotNull String trustStorePassword,
         @NotNull String postLogoutRedirectUri,
-        @NotNull EidasLevelOfAssurance minimumLoa
+        @NotNull EidasLevelOfAssurance minimumLoa,
+        boolean isSecuredApp
 ) {
 }
