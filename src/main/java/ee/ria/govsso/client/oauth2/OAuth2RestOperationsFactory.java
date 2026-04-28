@@ -6,7 +6,6 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -27,9 +26,7 @@ public class OAuth2RestOperationsFactory {
         HttpClient httpClient = HttpClients.custom()
                 .setConnectionManager(createConnectionManager(sslContext))
                 .build();
-        RestTemplate restTemplate = new RestTemplateBuilder()
-                .requestFactory(() -> new HttpComponentsClientHttpRequestFactory(httpClient))
-                .build();
+        RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
         List<HttpMessageConverter<?>> additionalMessageConverters = List.of(
                 new FormHttpMessageConverter(),
                 new OAuth2ErrorHttpMessageConverter(),

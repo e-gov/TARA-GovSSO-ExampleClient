@@ -15,14 +15,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
-import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -38,9 +39,11 @@ import org.springframework.security.web.authentication.session.CompositeSessionA
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestOperations;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -73,12 +76,12 @@ public class TaraSecurityConfiguration {
                         .requestCache(httpSessionRequestCache()))
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                         .requestMatchers(
-                                new AntPathRequestMatcher("/"),
-                                new AntPathRequestMatcher("/assets/**"),
-                                new AntPathRequestMatcher("/webjars/**"),
-                                new AntPathRequestMatcher("/scripts/**"),
-                                new AntPathRequestMatcher("/styles/**"),
-                                new AntPathRequestMatcher("/actuator/**"))
+                                "/",
+                                "/assets/**",
+                                "/webjars/**",
+                                "/scripts/**",
+                                "/styles/**",
+                                "/actuator/**")
                             .permitAll()
                         .anyRequest()
                             .authenticated())
@@ -135,11 +138,12 @@ public class TaraSecurityConfiguration {
         return http.build();
     }
 
-    private static DefaultAuthorizationCodeTokenResponseClient createAccessTokenResponseClient(
+    private static RestClientAuthorizationCodeTokenResponseClient createAccessTokenResponseClient(
             RestOperations taraRestOperations) {
-        DefaultAuthorizationCodeTokenResponseClient accessTokenResponseClient =
-                new DefaultAuthorizationCodeTokenResponseClient();
-        accessTokenResponseClient.setRestOperations(taraRestOperations);
+        RestTemplate restTemplate = (RestTemplate) taraRestOperations;
+        RestClientAuthorizationCodeTokenResponseClient accessTokenResponseClient =
+                new RestClientAuthorizationCodeTokenResponseClient();
+        accessTokenResponseClient.setRestClient(RestClient.create(restTemplate));
         return accessTokenResponseClient;
     }
 
@@ -153,7 +157,7 @@ public class TaraSecurityConfiguration {
     private CsrfTokenRepository csrfTokenRepository() {
         CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repository.setCookieName(COOKIE_NAME_XSRF_TOKEN);
-        repository.setSecure(true);
+        repository.setCookieCustomizer(cookieBuilder -> cookieBuilder.secure(true));
         repository.setCookiePath("/");
         return repository;
     }
@@ -202,7 +206,7 @@ public class TaraSecurityConfiguration {
             return filter;
         }
 
-        private TaraAuthentication createTaraAuthenticationToken(
+        private OAuth2AuthenticationToken createTaraAuthenticationToken(
                 OAuth2LoginAuthenticationToken authenticationResult
         ) {
             return new TaraAuthentication(

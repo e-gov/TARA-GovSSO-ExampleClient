@@ -11,9 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -36,7 +36,8 @@ public class ExampleClientSessionExpirationFilter extends OncePerRequestFilter {
     private final ExampleClientSessionProperties sessionProperties;
     private final SessionRegistry sessionRegistry;
 
-    private final RequestMatcher userActivity = new NegatedRequestMatcher(new AntPathRequestMatcher("/oauth2/**"));
+    private final RequestMatcher userActivity =
+            new NegatedRequestMatcher(PathPatternRequestMatcher.pathPattern("/oauth2/**"));
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

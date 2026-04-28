@@ -28,8 +28,8 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -52,7 +52,7 @@ import static org.springframework.http.HttpMethod.POST;
 public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
 
     public static final RequestMatcher REQUEST_MATCHER =
-            new AntPathRequestMatcher("/oauth2/refresh/" + GOVSSO_REGISTRATION_ID, POST.name());
+            PathPatternRequestMatcher.pathPattern(POST, "/oauth2/refresh/" + GOVSSO_REGISTRATION_ID);
 
     private final OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
     private final GovssoRefreshTokenTokenResponseClient refreshTokenResponseClient;

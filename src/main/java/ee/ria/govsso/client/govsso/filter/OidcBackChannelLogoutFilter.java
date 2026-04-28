@@ -15,8 +15,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoderFactory;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.thymeleaf.util.StringUtils;
 
@@ -42,7 +42,7 @@ import static org.springframework.http.HttpMethod.POST;
 public class OidcBackChannelLogoutFilter extends OncePerRequestFilter {
 
     public static final RequestMatcher REQUEST_MATCHER =
-            new AntPathRequestMatcher("/oauth2/back-channel-logout/{registrationId}", POST.name());
+            PathPatternRequestMatcher.pathPattern(POST, "/oauth2/back-channel-logout/{registrationId}");
 
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final JwtDecoderFactory<ClientRegistration> logoutTokenDecoderFactory;
