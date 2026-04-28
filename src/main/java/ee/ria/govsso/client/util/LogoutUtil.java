@@ -20,7 +20,7 @@ public class LogoutUtil {
             return null;
         }
         UriComponents uriComponents = UriComponentsBuilder
-                .fromHttpUrl(UrlUtils.buildFullRequestUrl(request))
+                .fromUriString(UrlUtils.buildFullRequestUrl(request))
                 .replacePath(request.getContextPath())
                 .replaceQuery(null)
                 .fragment(null)
