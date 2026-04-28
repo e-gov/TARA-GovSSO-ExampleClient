@@ -6,25 +6,54 @@ var sessionTimer;
 var timeout;
 var endTime;
 
-$(window).on('load', function() {
+function getById(id) {
+    return document.getElementById(id);
+}
+
+function setElementText(id, value) {
+    var element = getById(id);
+    if (element) {
+        element.textContent = value;
+    }
+}
+
+function setElementValue(id, value) {
+    var element = getById(id);
+    if (element) {
+        element.value = value;
+    }
+}
+
+function setError(message, visible) {
+    var errorElement = getById('error');
+    if (!errorElement) {
+        return;
+    }
+    errorElement.textContent = message;
+    errorElement.classList.toggle('d-none', !visible);
+}
+
+window.addEventListener('load', function() {
     var isChecked = localStorage.getItem('isChecked');
+    var autoUpdate = getById('autoUpdate');
+    var updateButton = getById('updateButton');
 
     if (isChecked == 'false') {
-        $('#autoUpdate').prop('checked', false);
+        autoUpdate.checked = false;
     } else {
-        $('#autoUpdate').prop('checked', true);
+        autoUpdate.checked = true;
     }
 
-    $('#autoUpdate').change(function () {
-        if($('#autoUpdate').is(':checked')){
+    autoUpdate.addEventListener('change', function() {
+        if (autoUpdate.checked) {
             localStorage.setItem('isChecked', 'true');
         } else {
             localStorage.setItem('isChecked', 'false');
         }
     });
-    $('#updateButton').click(updateGovSsoSession);
+    updateButton.addEventListener('click', updateGovSsoSession);
 
-    sessionLengthInSeconds = +$('#updateTimer').text();
+    sessionLengthInSeconds = Number.parseInt(getById('updateTimer').textContent, 10);
     endTime = getCurrentTimeStampInSeconds() + sessionLengthInSeconds;
     timeout = setTimeout(autoUpdateGovSsoSession, sessionLengthInSeconds * 1000);
     sessionTimer = setInterval(incrementSeconds, 1000);
@@ -32,12 +61,12 @@ $(window).on('load', function() {
 
 //TODO find a way to use leader election for browser tabs to prevent automatic session updates on multiple tabs
 function updateGovSsoSession() {
-    $('#updateButton').prop('disabled',true);
-    const csrfToken = $('meta[name="_csrf"]').attr('content');
-    const csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+    getById('updateButton').disabled = true;
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
     var scope = '';
-    if ($('#scope').val()) {
-        scope = '?scope=' + encodeURIComponent($('#scope').val());
+    if (getById('scope').value) {
+        scope = '?scope=' + encodeURIComponent(getById('scope').value);
     }
     (async () => {
         await fetch('/oauth2/refresh/govsso' + scope, {
@@ -49,21 +78,26 @@ function updateGovSsoSession() {
         }).then(async function (response) {
             if (response.ok) {
                 const responseBody = await response.json();
-                const claimsTableBody = $('#claimsTableBody');
+                const claimsTableBody = getById('claimsTableBody');
                 const rows = [];
 
-                $('#id_token').text(responseBody.id_token);
-                $('#id_token_hint').text(responseBody.id_token);
-                $('#access_token').text(responseBody.access_token);
-                $('#refresh_token').text(responseBody.refresh_token);
+                setElementText('id_token', responseBody.id_token);
+                setElementValue('id_token_hint', responseBody.id_token);
+                setElementText('access_token', responseBody.access_token);
+                setElementText('refresh_token', responseBody.refresh_token);
 
-                $.each(responseBody.id_token_claims, function (key, value) {
-                  const keyCell = $("<td></td>").text(key);
-                  const valueCell = $("<td></td>").text(value);
-                  rows.push($("<tr></tr>").append([keyCell, valueCell]));
+                Object.entries(responseBody.id_token_claims).forEach(function(entry) {
+                    const row = document.createElement('tr');
+                    const keyCell = document.createElement('td');
+                    const valueCell = document.createElement('td');
+
+                    keyCell.textContent = entry[0];
+                    valueCell.textContent = entry[1];
+                    row.append(keyCell, valueCell);
+                    rows.push(row);
                 });
-                $('#claimsTableBody').html(rows);
-                $('#error').hide();
+                claimsTableBody.replaceChildren(...rows);
+                setError('', false);
 
                 sessionLengthInSeconds = responseBody.time_until_govsso_session_expiration_in_seconds;
                 clearInterval(sessionTimer);
@@ -72,18 +106,16 @@ function updateGovSsoSession() {
                 clearTimeout(timeout);
                 timeout = setTimeout(autoUpdateGovSsoSession, (sessionLengthInSeconds - GOVSSO_SESSION_UPDATE_BUFFER_SECONDS) * 1000);
 
-                $('#error').hide();
-                $('#updateButton').prop('disabled',false);
+                setError('', false);
+                getById('updateButton').disabled = false;
             } else {
-                $('#error').show();
-                $('#error').text('Error updating GovSSO session. Refresh token is expired.');
+                setError('Error updating GovSSO session. Refresh token is expired.', true);
                 clearTimeout(timeout);
-                $('#updateButton').prop('disabled',false);
+                getById('updateButton').disabled = false;
             }
         }).catch((error) => {
-            $('#error').show();
-            $('#error').text('Error updating GovSSO session: ' + error.message + ' Retrying.');
-            $('#updateButton').prop('disabled',false);
+            setError('Error updating GovSSO session: ' + error.message + ' Retrying.', true);
+            getById('updateButton').disabled = false;
             clearTimeout(timeout);
             timeout = setTimeout(autoUpdateGovSsoSession, RETRY_BUFFER_SECONDS * 1000);
         });
@@ -94,14 +126,14 @@ function incrementSeconds() {
     var timeUntilSessionUpdateInSeconds = endTime - getCurrentTimeStampInSeconds();
 
     if (timeUntilSessionUpdateInSeconds >= 0) {
-        $('#updateTimer').text(timeUntilSessionUpdateInSeconds);
+        getById('updateTimer').textContent = timeUntilSessionUpdateInSeconds;
     } else {
         clearInterval(sessionTimer);
     }
 }
 
 function autoUpdateGovSsoSession() {
-    if($('#autoUpdate').prop('checked')) {
+    if (getById('autoUpdate').checked) {
         updateGovSsoSession();
     }
 }

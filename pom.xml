@@ -31,7 +31,7 @@
         <githubMirror>https://github.com</githubMirror>
 
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version><!-- TODO Upgrade to logstash-logback-encoder 9.x with Spring Boot 4.x, both upgrade to Jackson 3 -->
-        <bootstrap.version>4.5.3</bootstrap.version> <!-- TODO AUT-1499 update from 4.5.x to version 5.x.x -->
+        <bootstrap.version>5.3.8</bootstrap.version>
         <wiremock.version>3.13.2</wiremock.version>
         <rest-assured.version>6.0.0</rest-assured.version>
     </properties>

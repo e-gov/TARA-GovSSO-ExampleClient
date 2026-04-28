@@ -1,15 +1,15 @@
 function login() {
-    const authForm = $('#authForm');
-    // Remove fields with empty values from post data
-    authForm.find(':input').each(function () {
-        if ($(this).val() === '') {
-            $(this).attr('disabled', true);
+    const authForm = document.getElementById('authForm');
+    const inputs = authForm.querySelectorAll('input, select, textarea');
+
+    // Remove fields with empty values from post data.
+    inputs.forEach((input) => {
+        if (input.value === '') {
+            input.disabled = true;
         }
     });
+
     authForm.submit();
 }
 
-$('#loginBtn').click(function() {
-    login();
-})
-
+document.getElementById('loginBtn').addEventListener('click', login);

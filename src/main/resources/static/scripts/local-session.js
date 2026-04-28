@@ -1,8 +1,8 @@
 let secondsUntilLocalSessionExpiration;
 let timer;
 
-$(window).on('load', function() {
-    secondsUntilLocalSessionExpiration = +$('#idleTimer').text();
+window.addEventListener('load', function() {
+    secondsUntilLocalSessionExpiration = Number.parseInt(document.getElementById('idleTimer').textContent, 10);
     timer = setInterval(decrementTimeUntilSessionExpiration, 1000);
 });
 
@@ -12,5 +12,5 @@ const decrementTimeUntilSessionExpiration = function() {
         //TODO: Redirect to logout?
         clearInterval(timer);
     }
-    $('#idleTimer').text(secondsUntilLocalSessionExpiration);
-}
+    document.getElementById('idleTimer').textContent = secondsUntilLocalSessionExpiration;
+};
