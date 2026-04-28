@@ -1,6 +1,5 @@
 package ee.ria.govsso.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -14,6 +13,7 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;

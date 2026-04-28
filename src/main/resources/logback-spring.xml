@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <configuration scan="true" scanPeriod="30 minutes">
-    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="clr" class="org.springframework.boot.logging.logback.ColorConverter"/>
     <conversionRule conversionWord="wex"
-                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+                    class="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
     <conversionRule conversionWord="wEx"
-                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+                    class="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator"/>
 
     <springProperty scope="context" name="springAppName" source="spring.application.name"/>
@@ -42,7 +42,7 @@
             <level>${log.level.file}</level>
         </filter>
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
-            <jsonFactoryDecorator class="ee.ria.govsso.client.logging.LogbackJsonFactoryDecorator"/>
+            <decorator class="ee.ria.govsso.client.logging.LogbackJsonFactoryDecorator"/>
             <providers>
                 <timestamp>
                     <fieldName>@timestamp</fieldName>

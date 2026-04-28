@@ -30,7 +30,7 @@
         <imageName>${project.artifactId}:latest</imageName>
         <githubMirror>https://github.com</githubMirror>
 
-        <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version><!-- TODO Upgrade to logstash-logback-encoder 9.x with Spring Boot 4.x, both upgrade to Jackson 3 -->
+        <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
         <bootstrap.version>5.3.8</bootstrap.version>
         <wiremock.version>3.13.2</wiremock.version>
         <rest-assured.version>6.0.0</rest-assured.version>
@@ -129,7 +129,7 @@
                     <!--
                         Setting target value here is only needed to fix IntelliJ IDEA not detecting target version from
                         global maven.compiler.release property. Maven compiler works correctly without it.
-                    -->
+                     -->
                     <target>${maven.compiler.release}</target>
                 </configuration>
             </plugin>
