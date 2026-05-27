@@ -3,28 +3,21 @@ package ee.ria.govsso.client.logging;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import net.logstash.logback.decorate.MapperBuilderDecorator;
 import tools.jackson.databind.PropertyNamingStrategies;
-import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.databind.util.StdDateFormat;
 
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
-
-public class LogbackJsonFactoryDecorator
-        implements MapperBuilderDecorator<JsonMapper, JsonMapper.Builder> {
-
-    private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
-    private static final SimpleDateFormat LOGSTASH_DATE_FORMAT =
-            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-
-    static {
-        LOGSTASH_DATE_FORMAT.setTimeZone(UTC);
-    }
+@SuppressWarnings({"rawtypes", "unchecked"})
+public class LogbackJsonFactoryDecorator implements MapperBuilderDecorator {
 
     @Override
-    public JsonMapper.Builder decorate(JsonMapper.Builder builder) {
-        return builder
-                .defaultDateFormat(LOGSTASH_DATE_FORMAT)
-                .changeDefaultPropertyInclusion(inclusion ->
-                        inclusion.withValueInclusion(JsonInclude.Include.NON_NULL))
-                .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+    public Object decorate(Object decoratable) {
+        MapperBuilder builder = (MapperBuilder) decoratable;
+        builder.configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        builder.defaultDateFormat(new StdDateFormat().withColonInTimeZone(false));
+        builder.changeDefaultPropertyInclusion(inclusion ->
+                JsonInclude.Value.construct(JsonInclude.Include.NON_NULL, JsonInclude.Include.NON_NULL));
+        builder.propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        return builder;
     }
 }
