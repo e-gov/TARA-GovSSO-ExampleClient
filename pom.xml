@@ -32,6 +32,7 @@
 
         <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
         <bootstrap.version>5.3.8</bootstrap.version>
+        <jquery.version>3.7.1</jquery.version>
         <wiremock.version>3.13.2</wiremock.version>
         <rest-assured.version>6.0.0</rest-assured.version>
     </properties>
@@ -92,6 +93,11 @@
             <groupId>org.webjars</groupId>
             <artifactId>bootstrap</artifactId>
             <version>${bootstrap.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>jquery</artifactId>
+            <version>${jquery.version}</version>
         </dependency>
         <!-- The new Wiremock version installs Jetty 12 as a transitive dependency.
         However, Wiremock is only compatible with Jetty 11 by default.
