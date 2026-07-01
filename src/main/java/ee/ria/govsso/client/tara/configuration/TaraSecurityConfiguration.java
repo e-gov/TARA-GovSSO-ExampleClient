@@ -39,7 +39,6 @@ import org.springframework.security.web.authentication.session.CompositeSessionA
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestOperations;
@@ -51,6 +50,7 @@ import java.time.Duration;
 import java.util.List;
 
 import static ee.ria.govsso.client.configuration.CookieConfiguration.COOKIE_NAME_XSRF_TOKEN;
+import static org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher.pathPattern;
 
 @Slf4j
 @Configuration
@@ -76,12 +76,12 @@ public class TaraSecurityConfiguration {
                         .requestCache(httpSessionRequestCache()))
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                         .requestMatchers(
-                                "/",
-                                "/assets/**",
-                                "/webjars/**",
-                                "/scripts/**",
-                                "/styles/**",
-                                "/actuator/**")
+                                pathPattern("/"),
+                                pathPattern("/assets/**"),
+                                pathPattern("/webjars/**"),
+                                pathPattern("/scripts/**"),
+                                pathPattern("/styles/**"),
+                                pathPattern("/actuator/**"))
                             .permitAll()
                         .anyRequest()
                             .authenticated())

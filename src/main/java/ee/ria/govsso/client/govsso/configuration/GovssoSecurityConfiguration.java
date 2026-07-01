@@ -45,7 +45,6 @@ import org.springframework.security.web.authentication.session.CompositeSessionA
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
 import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.web.client.RestClient;
@@ -58,6 +57,7 @@ import java.time.Duration;
 import java.util.List;
 
 import static ee.ria.govsso.client.configuration.CookieConfiguration.COOKIE_NAME_XSRF_TOKEN;
+import static org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher.pathPattern;
 
 @Slf4j
 @Configuration
@@ -88,12 +88,12 @@ public class GovssoSecurityConfiguration {
                         .requestCache(httpSessionRequestCache()))
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                         .requestMatchers(
-                                "/",
-                                "/assets/**",
-                                "/webjars/**",
-                                "/scripts/**",
-                                "/styles/**",
-                                "/actuator/**")
+                                pathPattern("/"),
+                                pathPattern("/assets/**"),
+                                pathPattern("/webjars/**"),
+                                pathPattern("/scripts/**"),
+                                pathPattern("/styles/**"),
+                                pathPattern("/actuator/**"))
                             .permitAll()
                         .requestMatchers(OidcBackChannelLogoutFilter.REQUEST_MATCHER)
                             .permitAll()
@@ -123,7 +123,7 @@ public class GovssoSecurityConfiguration {
                         .defaultSuccessUrl("/dashboard")
                         .failureHandler(getAuthFailureHandler()))
                 .logout(logoutConfigurer -> {
-                        logoutConfigurer.logoutRequestMatcher(PathPatternRequestMatcher.pathPattern("/oauth/logout"));
+                        logoutConfigurer.logoutRequestMatcher(pathPattern("/oauth/logout"));
                         /*
                             Using custom handlers to pass ui_locales parameter to GovSSO logout flow.
                         */
