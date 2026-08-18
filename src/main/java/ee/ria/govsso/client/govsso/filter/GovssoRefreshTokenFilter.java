@@ -70,14 +70,14 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
             return;
         }
         try {
-            handleRefresh(response, request.getParameter("scope"));
+            handleRefresh(response, request.getParameter("scope"), request.getParameter("audience"));
         } catch (Exception e) {
             log.error("Refresh token request failed", e);
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         }
     }
 
-    private void handleRefresh(HttpServletResponse response, String scope) throws IOException {
+    private void handleRefresh(HttpServletResponse response, String scope, String audience) throws IOException {
         Authentication previousAuthentication =
                 SecurityContextHolder.getContext().getAuthentication();
         if (!(previousAuthentication instanceof GovssoAuthentication previousGovssoAuthentication)) {
@@ -94,7 +94,8 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
         ClientRegistration clientRegistration =
                 clientRegistrationRepository.findByRegistrationId(GOVSSO_REGISTRATION_ID);
         OAuth2AccessTokenResponse tokenResponse =
-                performRefreshTokenGrantRequest(clientRegistration, previousGovssoAuthentication.getRefreshToken(), scope);
+                performRefreshTokenGrantRequest(
+                        clientRegistration, previousGovssoAuthentication.getRefreshToken(), scope, audience);
         GovssoAuthentication newAuthToken =
                 createNewAuthentication(clientRegistration, tokenResponse);
         SecurityContextHolder.getContext().setAuthentication(newAuthToken);
@@ -137,11 +138,13 @@ public class GovssoRefreshTokenFilter extends OncePerRequestFilter {
     private OAuth2AccessTokenResponse performRefreshTokenGrantRequest(
             ClientRegistration clientRegistration,
             OAuth2RefreshToken refreshToken,
-            String scope) {
+            String scope,
+            String audience) {
         GovssoRefreshTokenTokenResponseClient.Request tokenRequest = new GovssoRefreshTokenTokenResponseClient.Request(
                 clientRegistration,
                 refreshToken,
-                scope);
+                scope,
+                audience);
         return refreshTokenResponseClient.getTokenResponse(tokenRequest);
     }
 

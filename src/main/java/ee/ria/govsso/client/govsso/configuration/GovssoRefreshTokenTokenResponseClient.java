@@ -70,6 +70,9 @@ public class GovssoRefreshTokenTokenResponseClient
         if (request.getScope() != null) {
             params.add(OAuth2ParameterNames.SCOPE, request.getScope());
         }
+        if (request.getAudience() != null) {
+            params.add(OAuth2ParameterNames.AUDIENCE, request.getAudience());
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -94,11 +97,14 @@ public class GovssoRefreshTokenTokenResponseClient
 
         private final OAuth2RefreshToken oAuth2RefreshToken;
         private final String scope;
+        private final String audience;
 
-        public Request(ClientRegistration clientRegistration, OAuth2RefreshToken oAuth2RefreshToken, String scope) {
+        public Request(ClientRegistration clientRegistration, OAuth2RefreshToken oAuth2RefreshToken, String scope,
+                       String audience) {
             super(AuthorizationGrantType.REFRESH_TOKEN, clientRegistration);
             this.oAuth2RefreshToken = oAuth2RefreshToken;
             this.scope = scope;
+            this.audience = audience;
         }
     }
 
