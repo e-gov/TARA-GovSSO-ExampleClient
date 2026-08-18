@@ -33,6 +33,13 @@
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version><!-- TODO Upgrade to logstash-logback-encoder 9.x with Spring Boot 4.x, both upgrade to Jackson 3 -->
         <bootstrap.version>4.5.3</bootstrap.version> <!-- TODO AUT-1499 update from 4.5.x to version 5.x.x -->
         <wiremock.version>3.13.2</wiremock.version>
+
+        <!-- Force newer versions than set by Spring Boot to mitigate CVE-s -->
+        <httpcore5.version>5.4.3</httpcore5.version>
+        <jackson-bom.version>2.21.5</jackson-bom.version>
+        <log4j2.version>2.26.1</log4j2.version>
+        <tomcat.version>10.1.57</tomcat.version>
+        <!-- httpclient5.version >= 5.6.2 causes o.s.s.o.c.OAuth2AuthenticationException: [invalid_id_token] An error occurred while attempting to decode the Jwt: Malformed Jwk set\n\tat o.s.s.o.c.o.a.OidcAuthorizationCodeAuthenticationProvider -->
     </properties>
 
     <dependencies><!-- Ordered by scope, groupId, artifactId. -->
