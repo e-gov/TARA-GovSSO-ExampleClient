@@ -35,12 +35,15 @@ function updateGovSsoSession() {
     $('#updateButton').prop('disabled',true);
     const csrfToken = $('meta[name="_csrf"]').attr('content');
     const csrfHeader = $('meta[name="_csrf_header"]').attr('content');
-    var scope = '';
+    const url = new URL('/oauth2/refresh/govsso', window.location.origin);
     if ($('#scope').val()) {
-        scope = '?scope=' + encodeURIComponent($('#scope').val());
+        url.searchParams.set('scope', $('#scope').val());
+    }
+    if ($('#audience').val()) {
+        url.searchParams.set('audience', $('#audience').val());
     }
     (async () => {
-        await fetch('/oauth2/refresh/govsso' + scope, {
+        await fetch(url, {
             method: 'POST',
             headers: {
                 [csrfHeader]: csrfToken,
