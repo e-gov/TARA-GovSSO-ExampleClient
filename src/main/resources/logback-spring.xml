@@ -13,6 +13,7 @@
     <property name="log.files.dir" value="${LOG_HOME:-${java.io.tmpdir:-/tmp}}"/>
     <property name="log.files.max.count" value="${LOG_FILES_MAX_COUNT:-31}"/>
     <property name="log.level.console" value="${LOG_CONSOLE_LEVEL:-INFO}"/>
+    <property name="log.level.console.json" value="${LOG_CONSOLE_JSON_LEVEL:-OFF}"/>
     <property name="log.level.file" value="${LOG_FILE_LEVEL:-OFF}"/>
     <property name="log.file.prefix" value="${LOG_FILE_PREFIX:-TaraGovssoExampleClient}"/>
     <property name="log.service.type" value="${LOG_SERVICE_TYPE:-govsso}"/>
@@ -29,6 +30,58 @@
         </encoder>
     </appender>
 
+    <!-- NB! Keep in sync with FILE appender -->
+    <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${log.level.console.json}</level>
+        </filter>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <decorator class="ee.ria.govsso.client.logging.LogbackJsonFactoryDecorator"/>
+            <providers>
+                <timestamp>
+                    <fieldName>@timestamp</fieldName>
+                    <pattern>yyyy-MM-dd'T'HH:mm:ss.SSSZZ</pattern>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <message/>
+                <pattern>
+                    <omitEmptyFields>true</omitEmptyFields>
+                    <pattern>
+                        {
+                        "log.level": "%level",
+                        "log.logger": "%logger",
+                        "process.pid": "#asLong{${PID}}",
+                        "process.thread.name": "%thread",
+                        "service.name": "${springAppName}",
+                        "service.type": "${log.service.type}"
+                        }
+                    </pattern>
+                </pattern>
+                <stackTrace>
+                    <fieldName>error.stack_trace</fieldName>
+                    <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                        <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                        <maxLength>2048</maxLength>
+                        <shortenedClassNameLength>20</shortenedClassNameLength>
+                        <exclude>^sun\.reflect\..*\.invoke</exclude>
+                        <exclude>^net\.sf\.cglib\.proxy\.MethodProxy\.invoke</exclude>
+                        <rootCauseFirst>true</rootCauseFirst>
+                        <inlineHash>true</inlineHash>
+                    </throwableConverter>
+                </stackTrace>
+                <stackHash/>
+                <rootStackTraceElement/>
+                <throwableRootCauseClassName>
+                    <fieldName>error.type</fieldName>
+                </throwableRootCauseClassName>
+                <logstashMarkers/>
+                <mdc/>
+                <arguments/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- NB! Keep in sync with STDOUT_JSON appender -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${log.files.dir}/${log.file.prefix}.%d{yyyy-MM-dd,GMT}.log</file>
         <!-- Support multiple-JVM writing to the same log file -->
@@ -90,5 +143,6 @@
     <root level="INFO">
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="STDOUT_JSON"/>
     </root>
 </configuration>
